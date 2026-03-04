@@ -1,0 +1,28 @@
+{
+  "name": "invitacionmelaniexv",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/FM9408/InvitacionMelanieXV#readme",
+  "bugs": {
+    "url": "https://github.com/FM9408/InvitacionMelanieXV/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FM9408/InvitacionMelanieXV.git"
+  },
+  "workspaces": ["*/"],
+  "private":"true",
+  "license": "MIT",
+  "author": "FM9408",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "dev:api": "npm run dev -w api",
+    "dev:client": "npm run dev -w client",
+    "dev:all": "npm run dev --workspaces",
+    "docker:build-api": "cd api && docker build -t invitacionmelaniexvapi . && cd ..",
+    "dockerRun:api": "cd api && docker run -d --rm --name invitacionmelaniexvapi -p 8080:8080 --env-file .env invitacionmelaniexvapi && cd ..",
+    "dockerApi:BuildAndRun":"npm run docker:build-api && npm run dockerRun:api",
+    "docker:compose:up": "docker compose up -d --build"
+  }
+}
