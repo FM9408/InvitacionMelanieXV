@@ -1,6 +1,12 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import App from '../App.jsx';
-import { Typography } from '@mui/material'
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Dashboard from '../pages/Dashboard';
+import ProtectedRoute from './ProtectedRute';
+import UserLayout from '../layouts/UserLayout';
+import AdminLayout from '../layouts/AdminLayout';
+import NotFound from '../pages/404';
+import { InvitacionNarrativa } from "../components/invitation/narrativeComponent"
+import Homepage from '../pages/Homepage';
+
 
 
 
@@ -8,14 +14,28 @@ const AppRouter = () => {
   return (
     
       <Routes>
-        <Route path="/" element={
-            <Typography variant='h1' fontFamily={"Imperial Script"} align="center" sx={{ mt: 4 }}>
-              Proximanente...
-            </Typography>
-        } />
+       
         {/* Ruta dinámica para el ID del invitado de PostgreSQL */}
+
+           <Route path="/" element={
+           <UserLayout />
+        } >
+        <Route path="" element={<Homepage />} />
+        <Route path="user/:familyID" element={<InvitacionNarrativa />} />
+        </Route>
+
         
-        <Route path="*" element={<Navigate to="/" />} />
+       
+         < Route path="/admin" element={<ProtectedRoute/>}>
+            <Route path="" element={<Navigate to="dashboard" />} />
+               <Route path='' element={<AdminLayout />}>
+          <Route path='dashboard' element={<Dashboard />}/>
+               </Route>
+         </Route>
+            
+       
+        <Route path="*" element={<Navigate to="/404" />} />
+        <Route path="/404" element={<NotFound />} />
       </Routes>
     
   );

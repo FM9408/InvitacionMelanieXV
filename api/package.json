@@ -7,7 +7,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "dev": "start nodemon index.js",
+    "dev": "start nodemon -L",
     "start": "node index.js"
   },
   "dependencies": {
@@ -16,7 +16,6 @@
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
-    "firebase-admin": "^13.6.1",
     "morgan": "^1.10.1",
     "pg": "^8.19.0",
     "pg-hstore": "^2.3.4",

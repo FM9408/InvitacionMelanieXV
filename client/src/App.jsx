@@ -1,39 +1,84 @@
-import { useState } from 'react'
-import { useTheme, Button } from '@mui/material'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import { ThemeContext } from '@emotion/react'
+import React from 'react';
+import AppRouter from './routes/AppRouter';
+import { useTheme, Box, Container } from '@mui/material';
+import { setMensajes } from './store/slices/mensajesSlice';
+import { fetchInvitados } from './store/slices/adminSlice';
+import './App.css';
+import { ThemeContext } from '@emotion/react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 
 function App() {
-  const [count, setCount] = useState(0)
-  const theme = useTheme()
-  
+    const location = useLocation();
+    const scrollTimeout = React.useRef(null);
+    const theme = useTheme();
+    const dispatch = useDispatch();
+    const { loadingMensajes } = useSelector((state) => state.mensajes);
+    const { invitados, loadingAdmin } = useSelector((state) => state.admin);
+    const UserContext = React.createContext();
+    const [currentUser, setCurrentUser] = React.useState({});
 
-  return (
-    <ThemeContext.Provider value={theme}>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <Button variant="contained" onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </Button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </ThemeContext.Provider>
-  )
+    React.useEffect(() => {
+        if (location.pathname.includes('/user/')) {
+            document.body.classList.remove('scrolling');
+            return;
+        }
+
+        const handleScroll = () => {
+            // Añadimos la clase al elemento raíz (html)
+            document.documentElement.classList.add('scrolling');
+
+            if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+
+            scrollTimeout.current = setTimeout(() => {
+                document.documentElement.classList.remove('scrolling');
+            }, 1000);
+        };
+        window.addEventListener('scroll', handleScroll);
+
+        if (invitados.length === 0 && loadingAdmin) {
+            dispatch(fetchInvitados());
+        }
+
+        if (invitados.length !== 0 && loadingMensajes) {
+            let mensajesArray = [];
+            invitados.forEach((familia) => {
+                familia.mensajes.forEach((mensaje) => {
+                    mensajesArray.push({
+                        ...mensaje,
+                        familia: familia.apellido,
+                    });
+                });
+            });
+            dispatch(setMensajes(mensajesArray));
+        }
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+        };
+    }, [invitados, location.pathname]);
+
+    return (
+        <UserContext.Provider value={currentUser}>
+            <ThemeContext.Provider value={theme}>
+                <Box
+                    sx={{
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        backgroundColor: theme.palette.background.default,
+                        width: '100%',
+                        '&::-webkit-scrollbar': { height: '8px' }, // Scroll horizontal delgado
+                        '&::-webkit-scrollbar-thumb': {
+                            background: theme.palette.secondary.main,
+                            borderRadius: '10px',
+                        },
+                    }}
+                >
+                    <AppRouter />
+                </Box>
+            </ThemeContext.Provider>
+        </UserContext.Provider>
+    );
 }
 
-export default App
+export default App;

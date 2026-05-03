@@ -1,15 +1,11 @@
-const {Router} = require("express")
-
+const { Router } = require('express')
+const invitadosRouter = require('./invitados')
+const mensajeRouter = require("./mensajes")
 
 const MainRouter = Router()
-MainRouter.use("/", async (req, res) => {
-   try {
-    res.status(200).json({
-        message: "Welcome to the API of Melanie's Invitation"
-    })
-   } catch (error) {
-    res.status(500).json({error: error.message})
-   }
-})
+MainRouter.use('/invitados', invitadosRouter)
+MainRouter.use("/mensajes", mensajeRouter)
 
-module.exports = MainRouter;
+
+
+module.exports = MainRouter

@@ -10,4 +10,11 @@ export default defineConfig({
     host: true, // Equivalente al --host del comando
     port: 5173,
   },
+  envDir: './',
+  envPrefix: 'VITE_',
+  
+  build: {
+    sourcemap: true, // Esto genera un archivo .map para facilitar la depuración en producción
+    outDir: 'build', // Directorio de salida para los archivos construidos
+  }
 })
