@@ -6,14 +6,18 @@ import InvitationThemeProvider from './theme';
 import { BrowserRouter } from 'react-router-dom';
 import './index.css'
 import App from './App.jsx'
-import AppRouter from './routes/AppRouter.jsx'
+import axios from 'axios';
+
+
+axios.defaults.baseURL = import.meta.env.MODE === "production" ? import.meta.env.VITE_PROD_API_URL : 'http://192.168.100.24:8080';
+
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>
-      <InvitationThemeProvider>
+      <InvitationThemeProvider >
         <BrowserRouter>
-          <AppRouter />
+          <App />
         </BrowserRouter>
       </InvitationThemeProvider>
     </Provider>

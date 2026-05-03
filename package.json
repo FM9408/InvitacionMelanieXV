@@ -10,8 +10,10 @@
     "type": "git",
     "url": "git+https://github.com/FM9408/InvitacionMelanieXV.git"
   },
-  "workspaces": ["*/"],
-  "private":"true",
+  "workspaces": [
+    "*/"
+  ],
+  "private": "true",
   "license": "MIT",
   "author": "FM9408",
   "type": "commonjs",
@@ -22,7 +24,7 @@
     "dev:all": "npm run dev --workspaces",
     "docker:build-api": "cd api && docker build -t invitacionmelaniexvapi . && cd ..",
     "dockerRun:api": "cd api && docker run -d --rm --name invitacionmelaniexvapi -p 8080:8080 --env-file .env invitacionmelaniexvapi && cd ..",
-    "dockerApi:BuildAndRun":"npm run docker:build-api && npm run dockerRun:api",
+    "dockerApi:BuildAndRun": "npm run docker:build-api && npm run dockerRun:api",
     "docker:compose:up": "docker compose up -d --build"
   }
 }

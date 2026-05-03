@@ -7,5 +7,6 @@
             "preLaunchTask": "docker-run: debug",
             "platform": "node"
         }
-    ]
+    ],
+    
 }

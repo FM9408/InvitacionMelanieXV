@@ -17,7 +17,11 @@ services:
       - "8080:8080"
     environment:
       # Pasamos las variables del sistema al contenedor
-       DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@db:${DB_PORT}/${DB_NAME}
+       DATABASE_URL: postgres://${DB_LOCAL_USER}:${DB_LOCAL_PASSWORD}@${DB_LOCAL_HOST}:${DB_PORT}/${DB_LOCAL_NAME}
+       DB_LOCAL_USER: ${DB_LOCAL_USER}
+       DB_LOCAL_NAME: ${DB_LOCAL_NAME}
+       DB_LOCAL_PASSWORD: ${DB_LOCAL_PASSWORD}
+       DB_PORT: ${DB_PORT}
        DB_HOST: ${DB_HOST}
        DB_NAME: ${DB_NAME}
        DB_PASSWORD: ${DB_PASSWORD}
