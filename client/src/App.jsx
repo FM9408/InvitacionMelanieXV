@@ -1,62 +1,71 @@
 import React from 'react';
 import AppRouter from './routes/AppRouter';
-import { useTheme, Box, Container } from '@mui/material';
+import { socket } from './hooks/ioSockets/socket';
+import UserContext  from './hooks/Contexts/UserContext';
+import { useTheme, Box } from '@mui/material';
 import { setMensajes } from './store/slices/mensajesSlice';
 import { fetchInvitados } from './store/slices/adminSlice';
 import './App.css';
+import dashboardBackground from './assets/images/dashboardBackground.png'
 import { ThemeContext } from '@emotion/react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useLocation } from 'react-router-dom';
 
 function App() {
-    const location = useLocation();
-    const scrollTimeout = React.useRef(null);
+    const storage = globalThis.localStorage;
     const theme = useTheme();
     const dispatch = useDispatch();
     const { loadingMensajes } = useSelector((state) => state.mensajes);
     const { invitados, loadingAdmin } = useSelector((state) => state.admin);
-    const UserContext = React.createContext();
+    const { isAdmin } = useSelector((state) => state.auth);
     const [currentUser, setCurrentUser] = React.useState({});
 
     React.useEffect(() => {
-        if (location.pathname.includes('/user/')) {
-            document.body.classList.remove('scrolling');
-            return;
-        }
+        console.log(import.meta.env);
 
-        const handleScroll = () => {
-            // Añadimos la clase al elemento raíz (html)
-            document.documentElement.classList.add('scrolling');
-
-            if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-
-            scrollTimeout.current = setTimeout(() => {
-                document.documentElement.classList.remove('scrolling');
-            }, 1000);
-        };
-        window.addEventListener('scroll', handleScroll);
-
-        if (invitados.length === 0 && loadingAdmin) {
+        socket.on('newFamilyCreated', () => {
             dispatch(fetchInvitados());
+        });
+        socket.on('newConfirmation', () => {
+            dispatch(fetchInvitados());
+        });
+        socket.on('newMensajeCreado', (mensaje) => {
+            dispatch(setMensajes(mensaje));
+        });
+
+        if (storage.getItem('user')) {
+            setCurrentUser({
+                visited: JSON.parse(storage.getItem('visited')),
+                user: JSON.parse(storage.getItem('user')),
+                isAdmin: isAdmin,
+            });
+        }
+        if (storage.getItem('visited')) {
+            const user = JSON.parse(storage.getItem('user'));
+
+            // if (isAdmin === false) {
+            //     navigate(`/user/${user.id}/dashboard`)
+            // } else {
+            //     navigate('/admin/dashboard')
+            // }
         }
 
-        if (invitados.length !== 0 && loadingMensajes) {
-            let mensajesArray = [];
-            invitados.forEach((familia) => {
-                familia.mensajes.forEach((mensaje) => {
-                    mensajesArray.push({
-                        ...mensaje,
-                        familia: familia.apellido,
+        return () => {
+            if (invitados.length === 0 && loadingAdmin) {
+                dispatch(fetchInvitados());
+            }
+            if (invitados.length !== 0 && loadingMensajes) {
+                invitados.forEach((familia) => {
+                    familia.mensajes.forEach((mensaje) => {
+                        dispatch(setMensajes({
+                            apellido: familia.apellido,
+                            ...mensaje
+                        }));
                     });
                 });
-            });
-            dispatch(setMensajes(mensajesArray));
-        }
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-            if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+            }
+            socket.connect();
         };
-    }, [invitados, location.pathname]);
+    }, [invitados]);
 
     return (
         <UserContext.Provider value={currentUser}>
@@ -65,7 +74,7 @@ function App() {
                     sx={{
                         justifyContent: 'center',
                         alignItems: 'center',
-                        backgroundColor: theme.palette.background.default,
+                       
                         width: '100%',
                         '&::-webkit-scrollbar': { height: '8px' }, // Scroll horizontal delgado
                         '&::-webkit-scrollbar-thumb': {

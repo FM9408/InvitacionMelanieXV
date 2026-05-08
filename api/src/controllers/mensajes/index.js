@@ -1,13 +1,15 @@
 const { Mensaje, Familia, conn } = require("../../db")
+const connectionEmitter = require('../../config/emmiter.js')
+
 
 
 
 async function createNewMensaje(req, res) {
     const { mensaje } = req.body
-    const {familiaID} = req.params
+    const { familiaID } = req.params
     const t = await conn.transaction()
-    const now = new Date(Date.now()).toISOString()
-  
+    
+    
     try {
         const getFamily = await Familia.findOne(
             {
@@ -27,18 +29,20 @@ async function createNewMensaje(req, res) {
             return res.status(404).json({ error: "familia no encontrada" })
             
         }
-        
-        const newMensaje = await Mensaje.create({
-                enviado: now,
+        const newMessage = await Mensaje.create(
+            {
                 mensaje,
-                familia_Id: familiaID
-            
-        }, {
-            transaction: t
-        })
-        await getFamily.addMensaje(newMensaje)
-        await t.commit()
+                familia_Id: familiaID,
+            },
+            { transaction: t }
+        );
         
+       
+        
+        await t.commit()
+        await getFamily.addMensaje(newMessage)
+        connectionEmitter.emit('mensajeCreado', newMessage);
+  
         res.status(201).json({
             mensaje: 'Mensaje creado correctamente'
         })
@@ -57,7 +61,7 @@ async function getAll(req, res) {
             }
         })
 
-        res.status(300).send(allMensajes)
+        res.status(200).send(allMensajes)
     } catch (error) {
         res.status(500).json({ error: error.message })
     }

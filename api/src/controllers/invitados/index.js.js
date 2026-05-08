@@ -1,4 +1,5 @@
 const { Invitado, Familia, conn } = require('../../db')
+const connectionEmitter = require('../../config/emmiter')
 const { Op } = require('sequelize')
 
 
@@ -53,7 +54,7 @@ const registrarFamilia = async (req, res) => {
                 await p.commit()
             })
         }
-        
+        connectionEmitter.emit('familyCreated', familia)
         
         res.status(201).json({
             message: 'Familia e invitados creados',
@@ -147,7 +148,6 @@ async function setConfirmation (req, res) {
 }
 async function setInvitationViewed (req, res) {
     const { familiaId } = req.query
-    console.log(familiaId)
     try { 
         await Familia.update({
             hasViewed: true
@@ -162,10 +162,27 @@ async function setInvitationViewed (req, res) {
             message: 'Familia actualizada'
         })
     } catch (error) {
-        console.log(error)
         res.status(500).json({ error: error.message })
     }
 }
+async function asignarMesa (req, res) { 
+    const {familiaId, mesa} = req.body
+    try {
+        await Familia.update({
+            mesa: mesa
+        }, {
+            where: {
+                id: familiaId
+            }
+        });
+        res.status(200).json({
+            message: 'Mesa asignada'
+        })
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+
+}
 
 
-module.exports = { getAllFamiles, registrarFamilia, buscarFamilia, borrarFamilia, buscarPorCualquierMiembro, setConfirmation, setInvitationViewed }
+module.exports = { getAllFamiles, registrarFamilia, buscarFamilia, borrarFamilia, buscarPorCualquierMiembro, setConfirmation, setInvitationViewed, asignarMesa }

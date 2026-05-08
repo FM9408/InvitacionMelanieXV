@@ -32,10 +32,11 @@ const StatCard = ({
                 }}
             >
                 <Typography
-                    variant='subtitle1'
+                    variant='adminSubtitle1'
                     color='text.secondary'
                     gutterBottom
-                    sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}
+                
+                    sx={{ fontWeight: 'bold', textTransform: 'uppercase', }}
                 >
                     {title}
                 </Typography>

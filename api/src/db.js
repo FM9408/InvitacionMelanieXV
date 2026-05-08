@@ -9,11 +9,12 @@ const {
     DB_LOCAL_USER,
     DB_LOCAL_PASSWORD,
     DB_LOCAL_HOST,
-    DB_LOCAL_NAME
+    DB_LOCAL_NAME,
+    NODE_ENV
 } = process.env
 
 const sequelize =
-    process.env.NODE_ENV === 'production'
+    NODE_ENV === 'production'
         ? new Sequelize({
               protocol: 'postgres',
               dialect: 'postgres',

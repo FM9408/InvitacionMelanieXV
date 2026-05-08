@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, Typography, Container } from '@mui/material';
+import { Box, Typography, Container, useTheme } from '@mui/material';
 import melanieWRose from '../../assets/images/melanieWrose.png';
 import { useScroll, useTransform, motion } from 'framer-motion';
 import FamilyModal from '../FamilyModal/FamilyModal';
@@ -27,16 +27,18 @@ MarcoDorado.propTypes = {
 };
 
 export const InvitacionNarrativa = () => {
+    const mainAudio = useRef(new Audio('/assets/audio/After_the_Masquerade.mp3'))
+    const theme= useTheme()
     const containerRef = useRef(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [hasOpened, setHasOpened] = useState(false);
-
+    
     // Configuración de velocidad (ajústalo a tu gusto)
     const { scrollYProgress } = useScroll({
         target: containerRef,
         offset: ['start start', 'end end'],
     });
-
+    
     const leftPhotoRotateY = useTransform(
         scrollYProgress,
         [0.2, 0.35],
@@ -47,19 +49,54 @@ export const InvitacionNarrativa = () => {
         [0.2, 0.35],
         [0, -30]
     );
+    const startAudio = () => {
+        mainAudio.current.currentTime = 0
+        mainAudio.current.play()
+        const volumeInterval = setInterval(() => {
+            if (volume < 1) {
+                volume = Math.min(volume + 0.01, 1)
+                mainAudio.current.volume = volume
+            } else {
+                clearInterval(volumeInterval)
+            }
+        }, 100)
+        globalThis.removeEventListener("click", startAudio)
+        globalThis.addEventListener("stop", stopMusic)
+    }
+    const stopMusic = () => {
+        const volumeInterval = setInterval(() => {
+            if (volume > 0) {
+                volume = Math.max(volume - 0.01, 0)
+                //--
+                mainAudio.current.volume = volume
+            } else {
+                clearInterval(volumeInterval)
+                mainAudio.current.pause()
+                mainAudio.current.currentTime = 0
+            }
+        }, 100)
+        globalThis.removeEventListener("start",startAudio)
+    }
     const photosRotateX = useTransform(scrollYProgress, [0, 0.35], [85, 20]);
     const photosZ = useTransform(scrollYProgress, [0.2, 0.35], [-400, 0]);
     const leftPhotoX = useTransform(scrollYProgress, [0.2, 0.35], [0, -100]);
+    let volume = 0
     const rightPhotoX = useTransform(scrollYProgress, [0.2, 0.35], [0, 100]);
 
     // Abrir modal al final
     useEffect(() => {
+        mainAudio.current.loop = false
         globalThis.history.scrollRestoration = 'manual';
         window.scrollTo(0, 0);
         let requestID;
         const totalDurationMS = 30000; // 60 segundos
         const startTime = performance.now();
-
+        if (modalOpen === false) {
+            dispatchEvent(new Event('start'))
+        } else {
+            dispatchEvent(new Event('stop'))
+        } 
+        globalThis.addEventListener("restartInvitation", startAudio)
         const autoScroll = (currentTime) => {
             const elapsedTime = currentTime - startTime;
             const totalScrollable =
@@ -73,6 +110,7 @@ export const InvitacionNarrativa = () => {
                 if (!hasOpened) {
                     setModalOpen(true);
                     setHasOpened(true);
+                   
                 }
                 cancelAnimationFrame(requestID);
             } else if (!modalOpen) {
@@ -85,7 +123,9 @@ export const InvitacionNarrativa = () => {
         }, 1000);
 
         return () => {
+            globalThis.addEventListener("start", startAudio)
             cancelAnimationFrame(requestID);
+            globalThis.removeEventListener("click", startAudio)
             clearTimeout(timer);
         };
     }, [modalOpen, hasOpened]);
@@ -108,7 +148,7 @@ export const InvitacionNarrativa = () => {
             >
                 {/* 1. INTRO */}
                 {/* SECCIÓN 1: INTRO (Igual) */}
-                <SectionWrapper progress={scrollYProgress} range={[0, 0.15]}>
+                <SectionWrapper   progress={scrollYProgress} range={[0, 0.15]}>
                     <TypografyItem progress={scrollYProgress} range={[0, 0.15]}>
                         <Typography
                             variant='invitationFont'
@@ -265,7 +305,7 @@ export const InvitacionNarrativa = () => {
                             <Typography
                                 variant='h3'
                                 sx={{
-                                    color: '#D4AF37',
+                                    color: theme.palette.secondary.main,
                                     mb: 6,
                                     fontWeight: 'bold',
                                     zIndex: 1,
@@ -370,7 +410,7 @@ const ItemText = ({ text, progress, range }) => {
     return (
         <motion.div style={{ opacity, x, filter: `blur(${blur})` }}>
             <Typography
-                variant='h4'
+                variant='invitationSecondaryText'
                 sx={{
                     fontFamily: "'Cinzel', serif",
                     color: '#fff',

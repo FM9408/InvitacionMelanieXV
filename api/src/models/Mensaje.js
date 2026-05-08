@@ -23,10 +23,15 @@ module.exports = (sequelize) => {
             type: DataTypes.VIRTUAL,
             get() {
                 const timestamp = new Date(this.enviado).getTime()
-                
+                console.log((Date.now() - timestamp) / 60000)
                 return Math.floor((Date.now() - timestamp) / 60000) 
             }
         } 
         
+    }, {
+        timestamps: false,
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL"
+
     })
 }

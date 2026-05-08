@@ -9,9 +9,9 @@ import App from './App.jsx'
 import axios from 'axios';
 
 
-axios.defaults.baseURL = import.meta.env.MODE === "production" ? import.meta.env.VITE_PROD_API_URL : 'http://192.168.100.24:8080';
+axios.defaults.baseURL = `${import.meta.env.VITE_API_URL}:${import.meta.env.VITE_API_PORT}`
 
-
+console.log(axios.defaults.baseURL)
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>

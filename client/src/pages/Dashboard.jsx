@@ -31,7 +31,7 @@ const Dashboard = () => {
             let confirmed = 0  
             invitados.forEach((familia) => {
                 familia.miembros.forEach((miembro) => {
-                    if (miembro.isConfirmed === "Confirmado") {
+                    if (miembro.willAssist === "Confirmado") {
                         confirmed++
                     }
                 })
@@ -135,7 +135,7 @@ const Dashboard = () => {
 
                                 ):<StatCard
                                 title='Confirmados'
-                                value={totalConfirmados}
+                                value={`${totalConfirmados}/${totalGuests}`}
                                 icon={CheckCircleIcon}
                             />
                             }
@@ -189,7 +189,7 @@ const Dashboard = () => {
                 {/* MESSAGES: 12 en móvil, 4 en desktop */}
                 <Grid item xs={12} md={8} sx={{ width: "100%", display: { lg: "flex" }, justifyContent:"center"}}>
                     <Paper sx={{ p: 2, minHeight: '400px', m:1, width:"100%",   borderTop: `6px solid ${theme.palette.primary.main}`,}}>
-                        <Typography variant='h6' gutterBottom>
+                        <Typography variant='adminH6' gutterBottom>
                             Mensajes de Invitados
                         </Typography>
                         <RoseDevider />
@@ -200,7 +200,7 @@ const Dashboard = () => {
                 <Grid item xs={12} md={8}>
                     <Paper sx={{ p: 2, minHeight: '400px', minWidth:"450px", position:"relative", m:1,  borderTop: `6px solid ${theme.palette.primary.main}` }}>
                         <Typography
-                            variant='h6'
+                            variant='adminH6'
                             sx={{
                                 display: 'inline-flex',
                                 width: '80%',
@@ -212,7 +212,7 @@ const Dashboard = () => {
                             Lista de Invitados
                         </Typography>
                         <Box sx={{position:"absolute", right:"10%", top:"2%"}}>
-                               <GuestManagement mode='Añadir' />
+                               <GuestManagement mode='Añadir' totalGuests={totalGuests} />
                         </Box>
                         <RoseDevider />
                         <Box
