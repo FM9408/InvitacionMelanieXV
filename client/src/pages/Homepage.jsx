@@ -1,4 +1,4 @@
-import { Container } from '@mui/material'
+import { Container, Box } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import React from 'react'
 import Fuse from 'fuse.js'
@@ -46,6 +46,8 @@ export default function Homepage() {
             const familiaEncontrada = results[0].item
             dispatch(setInvitado(familiaEncontrada))
             setInvitationViewed(familiaEncontrada.id)
+            globalThis.localStorage.setItem("visited", true)
+            globalThis.localStorage.setItem("user", JSON.stringify(familiaEncontrada))
             navigate(`/user/${familiaEncontrada.id}`)
         } else if (results.length > 1) {
             
@@ -71,7 +73,9 @@ export default function Homepage() {
 
     function selectedFamily(e) {
         setInvitationViewed(e.id)
-       dispatch(setInvitado(e))
+        dispatch(setInvitado(e))
+        globalThis.localStorage.setItem("visited", true)
+        globalThis.localStorage.setItem("user", JSON.stringify(e))
         navigate(`/user/${e.id}`)
         onClose()
         setInvitadosList([])
@@ -83,15 +87,15 @@ export default function Homepage() {
 
     React.useEffect(() => {
         setModalOpen(true)
-    }, [])
+        
+    }, [modalOpen])
     return (
-        <Container
-            sx={{
-                width: '100%',
-                height: '95vh',
+        <Box
+            sx={{                
                 display: 'flex',
                 justifyContent: 'center',
-                alignItems: 'center'
+                alignItems: 'center',
+                
             }}
         >
             {invitadosList.length === 0 ? (
@@ -118,6 +122,6 @@ export default function Homepage() {
             )
             }
         
-        </Container>
+        </Box>
     )
 }

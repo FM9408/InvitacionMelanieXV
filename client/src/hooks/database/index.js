@@ -23,8 +23,20 @@ export async function setInvitationViewed (familiaId) {
             `${axios.defaults.baseURL}/api/invitados/setInvitationViewed?familiaId=${familiaId}`
         );
     } catch (error) {
-        console.log(error);
-    
-    
+        throw new Error(error);    
     }
 }
+
+export async function asignarMesa (familiaId, mesa) {
+    try {
+        await axios.put(
+            `${axios.defaults.baseURL}/api/invitados/asignarMesa`,
+            {
+                familiaId,
+                mesa
+            }
+        );
+    } catch (error) {
+        throw new Error(error); 
+    }
+ }

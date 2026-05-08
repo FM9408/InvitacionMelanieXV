@@ -10,6 +10,7 @@ export default defineConfig({
     host: true, // Equivalente al --host del comando
     port: 5173,
   },
+
   envDir: './',
   envPrefix: 'VITE_',
   

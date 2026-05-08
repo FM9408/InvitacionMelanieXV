@@ -11,6 +11,7 @@ import {
     Box,
 } from '@mui/material';
 import React from 'react';
+import  UserContext from '../../hooks/Contexts/UserContext';
 import { LoadingCircle } from '../../components/Decorations/LoadingCircle';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchInvitados, deleteFamilia } from '../../store/slices/adminSlice';
@@ -40,6 +41,7 @@ const GuestListModule = () => {
     const [progress, setProgress] = React.useState(0);
     const [modalOpen, setModalOpen] = React.useState(false);
     const [modalData, setModalData] = React.useState({});
+    const user = React.useContext(UserContext);
     const dispatch = useDispatch();
     let { invitados, loadingAdmin } = useSelector((state) => state.admin);
     const [loadingInfo, setLoadingInfo] = React.useState(true);
@@ -50,14 +52,17 @@ const GuestListModule = () => {
     }
 
     React.useEffect(() => {
-        if (guests.length === 0 || guests.length !== invitados.length) {
+        if (user.visited === false || invitados.length === 0) {
             setLoadingInfo(true);
             setGuests(invitados);
-        } else {
             setTimeout(() => {
                 setProgress(100);
                 setLoadingInfo(false);
             }, 4000);
+        } else {
+            setLoadingInfo(false);
+            setGuests(invitados);
+            setProgress(100);
         }
     }, [progress, guests.length, loadingAdmin]);
     function deleteHandler(id) {
@@ -90,11 +95,35 @@ const GuestListModule = () => {
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell>Familia</TableCell>
-                                <TableCell align='center'>Pases</TableCell>
-                                <TableCell align='center'>Estado</TableCell>
-                                <TableCell align='center'>Miembros</TableCell>
-                                <TableCell align='right'>Acciones</TableCell>
+                                <TableCell
+                                    sx={{ fontFamily: 'Roboto, sans-serif',fontSize:"small" }}
+                                >
+                                    Familia
+                                </TableCell>
+                                <TableCell
+                                    sx={{ fontFamily: 'Roboto, sans-serif',fontSize:"small" }}
+                                    align='center'
+                                >
+                                    Pases
+                                </TableCell>
+                                <TableCell
+                                    sx={{ fontFamily: 'Roboto, sans-serif' ,fontSize:"small"}}
+                                    align='center'
+                                >
+                                    Estado
+                                </TableCell>
+                                <TableCell
+                                    sx={{ fontFamily: 'Roboto, sans-serif', fontSize:"small"}}
+                                    align='center'
+                                >
+                                    Miembros
+                                </TableCell>
+                                <TableCell
+                                    sx={{ fontFamily: 'Roboto, sans-serif', fontSize:"small"}}
+                                    align='right'
+                                >
+                                    Acciones
+                                </TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -107,15 +136,23 @@ const GuestListModule = () => {
                                                 xs: '100px',
                                                 md: '200px',
                                             },
-                                            overflow: 'auto',
+                                            fontFamily: 'Roboto, sans-serif',
+                                            fontSize:"small",
                                             textOverflow: 'ellipsis',
+                                            overflow: 'auto',
                                             overflowWrap: 'break-word',
                                             transition: 'all .2s ease-in-out ',
                                         }}
                                     >
                                         {guest.apellido}
                                     </TableCell>
-                                    <TableCell align='center'>
+                                    <TableCell
+                                        sx={{
+                                            fontFamily: 'Roboto, sans-serif',
+                                            fontSize:"small",
+                                        }}
+                                        align='center'
+                                    >
                                         {guest.pases}
                                     </TableCell>
                                     <TableCell align='center'>
@@ -130,6 +167,10 @@ const GuestListModule = () => {
                                                     'error'
                                                 )
                                             }
+                                            sx={{
+                                                fontFamily:
+                                                    'Roboto, sans-serif',
+                                            }}
                                             size='small'
                                             variant='outlined'
                                         />
@@ -144,6 +185,10 @@ const GuestListModule = () => {
                                                     <Chip
                                                         label={member.nombre}
                                                         size='small'
+                                                        sx={{
+                                                            fontFamily:
+                                                                'Roboto, sans-serif',
+                                                        }}
                                                         variant='filled'
                                                         color={
                                                             (

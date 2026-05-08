@@ -38,7 +38,6 @@ import RoseDevider from '../Decorations/roseDivider';
 const FamilyModal = ({ open, onClose, mode, initialData, onSave, onError, invitadosList, setHasOpened }) => {
     const { datos } = useSelector((state) => state.invitado);
     const navigate = useNavigate();
-    const dispatch = useDispatch();
     const [willAssist, setWillAssist] = useState([]);
     const [wontAssist, setWontAssist] = useState([])
     const [search, setSearch] = useState('')
@@ -90,7 +89,7 @@ const FamilyModal = ({ open, onClose, mode, initialData, onSave, onError, invita
     }
     function confirmationHandler() {
         setConfirmation(willAssist, wontAssist)
-        dispatch(fetchInvitados())
+        navigate(`/user/${datos.id}/dashboard`)
         onClose()
     }
 
@@ -111,8 +110,12 @@ const FamilyModal = ({ open, onClose, mode, initialData, onSave, onError, invita
 
     
     return (
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth='sm'>
-            <DialogTitle>
+        <Dialog open={open} onClose={(event, reason) => {
+            if (reason !== 'backdropClick') {
+                onClose()
+            }
+        }}  fullWidth maxWidth='sm' sx={{backdropFilter: "blur(10px)"}} >
+            <DialogTitle sx={{width:"100%", textAlign:"center", overflow:"clip", }}>
                 {mode === 'Añadir' && 'Registrar Nueva Familia'}
                 {mode === "Editar" && 
                     <Container sx={{mb:-5, width:"100%", textAlign:"center"}}>
@@ -175,7 +178,14 @@ const FamilyModal = ({ open, onClose, mode, initialData, onSave, onError, invita
                             </Typography>
                     </Container>
                 }
-                {mode === 'Mensaje' && 'Enviar Dedicatoria'}
+                {mode === 'Mensaje' && 
+                    <Container sx={{mb:-5}}>
+                         <Typography
+                                variant='SearchFont'
+                                gutterBottom
+                    >Envia una dedicatoria a la cumpleañera</Typography>
+                    </Container>
+                }
             </DialogTitle>
             <RoseDevider />
             <DialogContent >
@@ -262,7 +272,9 @@ const FamilyModal = ({ open, onClose, mode, initialData, onSave, onError, invita
                                         }}
                                         sx={{width: `${100/3}%`, pointerEvents: willAssist.includes(inv.id) ? "none" : "auto"}}
                                     >
+                                    <Typography variant="subtitle1">
                                         Asiste
+                                        </Typography>
                                     </Button>
                                     <Button
                                         variant={wontAssist.includes(inv.id) ? 'contained' : "text"}
@@ -273,7 +285,9 @@ const FamilyModal = ({ open, onClose, mode, initialData, onSave, onError, invita
                                         color='error'
                                         startIcon={<Cancel />}
                                     >
+                                    <Typography variant="subtitle1">
                                         No asiste
+                                        </Typography>
                                     </Button>
                                 </Box>
                             
@@ -285,7 +299,7 @@ const FamilyModal = ({ open, onClose, mode, initialData, onSave, onError, invita
                 {mode === 'Mensaje' && (
                     <Box sx={{ mt: 1 }}>
                         <TextField
-                            label='Tu mensaje para los festejados'
+                            label='Tu mensaje para la quinceañera'
                             multiline
                             rows={4}
                             fullWidth
@@ -394,7 +408,8 @@ const FamilyModal = ({ open, onClose, mode, initialData, onSave, onError, invita
                     mode === "Confirmar" && (
                         <IconButton onClick={() => {
                             onClose()
-                            window.scrollTo({
+                            dispatchEvent(new Event('restartInvitation'))
+                            globalThis.scrollTo({
                                 top: 0,
                                 behavior: 'smooth'
                             })
@@ -419,7 +434,7 @@ const FamilyModal = ({ open, onClose, mode, initialData, onSave, onError, invita
                                 onClose()
                             }}
                         >
-                            Enviar confirmación
+                            <Typography variant="button">Enviar confirmación</Typography>
                         </Button>
                         : <Box>
                              {

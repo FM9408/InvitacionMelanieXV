@@ -24,7 +24,7 @@ export function responsiveFontSizes({ sm, md, lg }) {
 
 // ----------------------------------------------------------------------
 
-const FONT_PRIMARY = "'Roboto', sans-serif" // Google Font
+const FONT_PRIMARY = "'Tangerine Bold', sans-serif" // Google Font
 // const FONT_SECONDARY = 'CircularStd, sans-serif'; // Local Font
 
 const typography = {
@@ -49,9 +49,19 @@ const typography = {
         fontWeight: 700,
         lineHeight: 1.5,
         fontSize: pxToRem(24),
-        ...responsiveFontSizes({ sm: 26, md: 30, lg: 32 })
+        ...responsiveFontSizes({ sm: 24, md: 30, lg: 32 })
     },
     h4: {
+        fontWeight: 700,
+        lineHeight: 1.5,
+        fontSize: pxToRem(40),
+        ...responsiveFontSizes({ sm: 30, md: 35, lg: 40 })
+    },
+    invitationSecondaryText: {
+        fontSize: pxToRem(20),
+        ...responsiveFontSizes({ sm: 20, md: 24, lg: 24 })
+    },
+    adminH4: {
         fontWeight: 700,
         lineHeight: 1.5,
         fontSize: pxToRem(20),
@@ -68,13 +78,27 @@ const typography = {
     h6: {
         fontWeight: 700,
         lineHeight: 28 / 18,
-        fontSize: pxToRem(17),
-        ...responsiveFontSizes({ sm: 18, md: 18, lg: 18 })
+        fontSize: pxToRem(48),
+        ...responsiveFontSizes({ sm: 30, md: 40, lg: 50 })
+    },
+    adminH6: {
+      fontFamily: "Roboto, sans-serif",
+      fontWeight: 700,
+      lineHeight: 28 / 18,
+      fontSize: pxToRem(25),
+      ...responsiveFontSizes({ sm: 25, md: 30, lg: 35})
+   
     },
     subtitle1: {
         fontWeight: 700,
         lineHeight: 1.5,
-        fontSize: pxToRem(16)
+        fontSize: pxToRem(30)
+    },
+    adminSubtitle1: {
+        fontWeight: 700,
+        fontFamily: "Roboto, sans-serif",
+        lineHeight: 1.5,
+        fontSize: pxToRem(20)
     },
     subtitle2: {
         fontWeight: 600,
@@ -82,16 +106,21 @@ const typography = {
         fontSize: pxToRem(14)
     },
     body1: {
-        lineHeight: 1.5,
-        fontSize: pxToRem(16)
+        lineHeight: 1,
+        fontSize: pxToRem(30)
     },
     body2: {
         lineHeight: 22 / 14,
-        fontSize: pxToRem(14)
+        fontSize: pxToRem(28)
     },
     caption: {
         lineHeight: 1.5,
-        fontSize: pxToRem(12)
+        fontSize: pxToRem(20),
+    },
+    adminCaption: {
+        lineHeight: 1.5,
+        fontFamily: "Roboto, sans-serif",
+        fontSize: pxToRem(13),
     },
     overline: {
         fontWeight: 700,
@@ -102,7 +131,7 @@ const typography = {
     button: {
         fontWeight: 700,
         lineHeight: 24 / 14,
-        fontSize: pxToRem(14),
+        fontSize: pxToRem(20),
         textTransform: 'capitalize'
     },
     messageTitle: {

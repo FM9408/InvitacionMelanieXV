@@ -20,7 +20,7 @@ function HandleBottonIcon(mode) {
     }
 }
 
-export const GuestManagement = ({ mode }) => {
+export const GuestManagement = ({ mode, totalGuests }) => {
     // 1. El estado para controlar el modal
     const dispatch = useDispatch();
     const [icon, setIcon] = useState(HandleBottonIcon(mode));
@@ -40,9 +40,6 @@ export const GuestManagement = ({ mode }) => {
     function saveAndRfresh(data) {
         try {
             dispatch(AddaFamily(data));
-            setTimeout(() => {
-                dispatch(fetchInvitados());
-            }, 1000);
         } catch (error) {
             setError(error);
         }
@@ -71,6 +68,7 @@ export const GuestManagement = ({ mode }) => {
                 onClick={() =>
                     setModalConfig({ open: true, mode: mode, data: null })
                 }
+                disabled={totalGuests !== 150 ? false : true} // Ejemplo: desactivar si ya hay 10 invitados
             >
                 {icon}
             </IconButton>

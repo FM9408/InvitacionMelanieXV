@@ -11,6 +11,7 @@ const MessagesModule = () => {
     const [messages, setMessages] = React.useState([])
 
     React.useEffect(() => {
+        console.log('Mensajes actualizados:', mensajes)
         setMessages(mensajes)
     }, [mensajes])
 

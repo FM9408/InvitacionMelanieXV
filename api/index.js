@@ -1,32 +1,40 @@
-require('dotenv').config()
-const { NODE_ENV } = process.env
+require('dotenv').config({
+    path: './.env',
+    override: true,
+})
+const { NODE_ENV, API_PORT } = process.env
+const server = require('./src/config/websocketConfig').server
+const io = require('./src/config/websocketConfig').io
+const connectionEmitter = require('./src/config/emmiter')
 const api = require('./src/app')
 const { conn } = require('./src/db.js')
 const mock = require('./src/mock')
 
 
-const PORT = process.env.PORT || 3000
 
-api.listen(8080, "0.0.0.0", async () => {
+
+
+server.listen(4000)
+connectionEmitter.on('familyCreated', (data) => {
+    io.emit('newFamilyCreated', data)
+})
+connectionEmitter.on('mensajeCreado', (data) => {
+    io.emit('newMensajeCreado', data)
+})
+
+api.listen(API_PORT, '0.0.0.0', async () => {
+    console.log(process)
+    console.log(`Server listening on port ${API_PORT}`)
     try {
-        console.log('Conectando a la base de datos...')
-        await conn.authenticate()
-        console.log('Conexión exitosa a la base de datos')
+        await conn.authenticate();
         await conn.sync({
             force: NODE_ENV === 'development',
             alter: NODE_ENV === 'development',
-            logging:
-                NODE_ENV === 'development'
-                    ? (logs) => {
-                          console.log('Base de datos sincronizada con éxito')
-                          console.log(logs)
-                      }
-                    : false
-        })
-        await mock.seedDatabase()
-        
-        console.log(`Servidor escuchando en http://192.168.1.XX:${PORT}`)
+            logging: false,
+        });
+        await mock.seedDatabase();
     } catch (error) {
-        console.error('Error al conectar a la base de datos:', error)
+        console.error('Error al conectar a la base de datos:', error);
     }
-})
+});
+

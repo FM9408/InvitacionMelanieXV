@@ -7,9 +7,11 @@ import Footer from '../components/Footer'
 const AdminLayout = () => {
     return (
         <Box>
-            <Appbar />
+            <Box sx={{ position: 'relative', zIndex: 1, mb:3}}>
+                <Appbar />
+            </Box>
             {/* Reducimos el padding en móviles (px: 1) y lo aumentamos en desktop (px: 3) */}
-            <Box component='main' sx={{ mt: 2 }}>
+            <Box component='main' sx={{ mt: 2, pt:2 }}>
                 <Outlet />
             </Box>
 

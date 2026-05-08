@@ -6,11 +6,11 @@ import DeleteIcon from "@mui/icons-material/Delete"
 
 export const CardMensaje = ({ m, theme }) => (
     <Box
-        sx={{
-            flex: "0 0 auto", // Evita que la tarjeta se encoja
-            width: { xs: "280px", sm: "320px" }, // Tamaño perfecto para lectura
-            minHeight: "250px", // Altura uniforme
-            display: 'flex',
+    sx={{
+        flex: "0 0 auto", // Evita que la tarjeta se encoja
+        width: { xs: "280px", sm: "320px" }, // Tamaño perfecto para lectura
+        minHeight: "250px", // Altura uniforme
+        display: 'flex',
             position: 'relative',
             alignItems: 'center',
             backgroundColor: theme.palette.background.paper,
@@ -30,7 +30,7 @@ export const CardMensaje = ({ m, theme }) => (
 
         <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
             <Typography
-                variant='h6'
+                variant='adminH4'
                 sx={{
                     color: theme.palette.secondary.main,
                     fontWeight: 'bold',
@@ -39,10 +39,10 @@ export const CardMensaje = ({ m, theme }) => (
                     mb: 2,
                     textAlign: 'center'
                 }}
-            >
-                Familia {m.familia}
+                >
+                Familia {m.apellido}
             </Typography>
-
+            
             <Typography
                 sx={{
                     fontStyle: 'italic',
@@ -52,6 +52,7 @@ export const CardMensaje = ({ m, theme }) => (
                     overflowY: 'auto',
                     maxHeight: '120px', // Limita el texto largo sin romper la tarjeta
                     pr: 1,
+                    fontFamily: 'Roboto, sans-serif',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'pre-wrap',
                     overflowWrap: 'break-word'
@@ -61,7 +62,7 @@ export const CardMensaje = ({ m, theme }) => (
             </Typography>
 
             <Typography
-                variant='caption'
+                variant='adminCaption'
                 sx={{
                     mt: 2,
                     color: theme.palette.text.secondary,
@@ -69,7 +70,7 @@ export const CardMensaje = ({ m, theme }) => (
                     fontWeight: 'bold'
                 }}
             >
-                {m.date < 60 
+                {m.enviadoHace < 60
                     ? `Hace ${m.enviadoHace} min` 
                     : `Hace ${Math.floor(m.enviadoHace/60)} hrs`}
             </Typography>

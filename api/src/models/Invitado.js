@@ -41,6 +41,8 @@ const invitadoModel = (sequelize) => {
         },
         {
             timestamps: false,
+            onUpdate: "CASCADE",
+            onDelete: "SET NULL"
            
             
         }

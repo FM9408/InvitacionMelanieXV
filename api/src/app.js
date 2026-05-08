@@ -1,4 +1,5 @@
 const express = require('express')
+const {CLIENT_PORT, CLIENT_URL } = process.env;
 const cors = require('cors')
 const morgan = require('morgan')
 const cookieParser = require('cookie-parser')
@@ -9,15 +10,15 @@ require('./db.js')
 
 const api = express()
 
-api.use(express.json({ limit: '10mb' }))
-api.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }))
+api.use(express.json({ limit: '50mb' }))
+api.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }))
 api.use(cookieParser())
 api.use(cors())
 api.use(morgan('dev'))
 api.use((req, res, next) => {
     res.header(
         'Access-Control-Allow-Origin',
-        process.env.NODE_ENV === 'production' ? process.env.CLIENT_URL : '*'
+        `${CLIENT_URL}:${CLIENT_PORT}`
     )
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
     res.header('Access-Control-Allow-Credentials', 'true')
@@ -35,5 +36,7 @@ api.use((err, req, res, next) => {
     res.status(500).json({ error: errMessage })
     next()
 })
+
+
 
 module.exports = api
