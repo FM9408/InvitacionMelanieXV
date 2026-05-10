@@ -38,6 +38,7 @@ import RoseDevider from '../Decorations/roseDivider';
 const FamilyModal = ({ open, onClose, mode, initialData, onSave, onError, invitadosList, setHasOpened }) => {
     const { datos } = useSelector((state) => state.invitado);
     const navigate = useNavigate();
+    const [hovered, setHovered] = useState(0);
     const [willAssist, setWillAssist] = useState([]);
     const [wontAssist, setWontAssist] = useState([])
     const [search, setSearch] = useState('')
@@ -78,6 +79,13 @@ const FamilyModal = ({ open, onClose, mode, initialData, onSave, onError, invita
         setWillAssist(arrayHandler)
         setWillAssist([...willAssist, miembro.id])
     }
+
+    const onHoverHandler = () => {
+        setHovered(360)
+    }
+    const onLeaveHandler = () => {
+        setHovered(0);
+    };
 
     const dontAssistHandler = (miembro) => {
        
@@ -296,28 +304,17 @@ const FamilyModal = ({ open, onClose, mode, initialData, onSave, onError, invita
                 )}
 
                 {/* MODO MENSAJE: Textarea para dedicatoria */}
-                {mode === 'Mensaje' && (
-                    <Box sx={{ mt: 1 }}>
-                        <TextField
-                            label='Tu mensaje para la quinceañera'
-                            multiline
-                            rows={4}
-                            fullWidth
-                            value={familyData.mensaje}
-                            onChange={(e) =>
-                                setFamilyData({
-                                    ...familyData,
-                                    mensaje: e.target.value
-                                })
-                            }
-                        />
-                    </Box>
-                )}
+             
                 {mode === 'Buscar' && (
                   
                        
                         <Box sx={{mt:-2}}>
-                            <TextField
+                           <form onSubmit={(e) => {
+                            e.preventDefault()
+                            onSave(search)
+                            onClose()
+                        }}>
+                             <TextField
                                 rows={1}
                                 fullWidth
                                 value={search}
@@ -325,6 +322,7 @@ const FamilyModal = ({ open, onClose, mode, initialData, onSave, onError, invita
                                 error={onError.state}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
+                           </form>
                         </Box>
                     
                 )}
@@ -406,7 +404,8 @@ const FamilyModal = ({ open, onClose, mode, initialData, onSave, onError, invita
                 )}
                 {
                     mode === "Confirmar" && (
-                        <IconButton onClick={() => {
+                        <Box onMouseEnter={onHoverHandler} onMouseLeave={onLeaveHandler} sx={{width:"30%",}}>
+                            <Button onClick={() => {
                             onClose()
                             dispatchEvent(new Event('restartInvitation'))
                             globalThis.scrollTo({
@@ -416,18 +415,22 @@ const FamilyModal = ({ open, onClose, mode, initialData, onSave, onError, invita
                             
                             setHasOpened(false)
                         }}
-                           
-                           
+                            variant='contained'
+                           sx={{width:"100%"}}
+                         startIcon={<RestartAltIcon sx={{transition: 'transform 1s linear', transform: `rotate(${hovered}deg)`}} />}  
                         >
-                            <RestartAltIcon />
-                        </IconButton>
+                            <Typography variant="button">Ver de nuevo</Typography>
+                        </Button>
+                        </Box>
+                            
+                        
                     )
                 }
                 {
                     mode === "Confirmar" ? 
                         <Button
                             variant='contained'
-                            sx={{width:"80%"}}
+                            sx={{width:"70%"}}
                             disabled={setDisablehandler()}
                             onClick={() => {
                                 confirmationHandler()
@@ -436,10 +439,11 @@ const FamilyModal = ({ open, onClose, mode, initialData, onSave, onError, invita
                         >
                             <Typography variant="button">Enviar confirmación</Typography>
                         </Button>
-                        : <Box>
+                        : <Box sx={{width:"100%"}}>
                              {
                     mode !== "Seleccionar" && <Button
-                    disabled={search.length === 0 && mode === 'Buscar'}
+                                    disabled={search.length === 0 && mode === 'Buscar'}
+                                    fullWidth
                     variant='contained'
                     startIcon={
                         mode === 'Mensaje' ? (
