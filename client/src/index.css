@@ -41,3 +41,8 @@ font-size: medium;
   font-family: 'Tangerine Bold';
   src: url("./assets/fonts/tangerine-bold.woff2") format("woff2");
 }
+
+@font-face {
+  font-family: "Cinzel";
+  src: url('./assets//fonts//Cinzel-VariableFont_wght.woff2') format('woff2');
+}

@@ -65,7 +65,7 @@ function App() {
             }
             socket.connect();
         };
-    }, [invitados]);
+    }, [invitados, globalThis.location.pathname]);
 
     return (
         <UserContext.Provider value={currentUser}>
@@ -74,7 +74,10 @@ function App() {
                     sx={{
                         justifyContent: 'center',
                         alignItems: 'center',
-                       
+                        backgroundColor: globalThis.location.pathname === "/inMemoriam" ? theme.palette.common.black : theme.palette.background.default,
+                        backgroundImage: globalThis.location.pathname === "/inMemoriam" ? 'none' : `url(${dashboardBackground})`,
+                        backgroundRepeat: 'no-repeat',
+                        backgroundSize: 'cover',
                         width: '100%',
                         '&::-webkit-scrollbar': { height: '8px' }, // Scroll horizontal delgado
                         '&::-webkit-scrollbar-thumb': {

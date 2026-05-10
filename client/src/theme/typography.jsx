@@ -1,30 +1,30 @@
 // ----------------------------------------------------------------------
 
 export function remToPx(value) {
-    return Math.round(Number.parseFloat(value) * 16)
+    return Math.round(Number.parseFloat(value) * 16);
 }
 
 export function pxToRem(value) {
-    return `${value / 16}rem`
+    return `${value / 16}rem`;
 }
 
 export function responsiveFontSizes({ sm, md, lg }) {
     return {
         '@media (min-width:600px)': {
-            fontSize: pxToRem(sm)
+            fontSize: pxToRem(sm),
         },
         '@media (min-width:900px)': {
-            fontSize: pxToRem(md)
+            fontSize: pxToRem(md),
         },
         '@media (min-width:1200px)': {
-            fontSize: pxToRem(lg)
-        }
-    }
+            fontSize: pxToRem(lg),
+        },
+    };
 }
 
 // ----------------------------------------------------------------------
 
-const FONT_PRIMARY = "'Tangerine Bold', sans-serif" // Google Font
+const FONT_PRIMARY = "'Tangerine Bold', sans-serif"; // Google Font
 // const FONT_SECONDARY = 'CircularStd, sans-serif'; // Local Font
 
 const typography = {
@@ -36,82 +36,77 @@ const typography = {
         fontWeight: 800,
         lineHeight: 80 / 64,
         fontSize: pxToRem(40),
-        ...responsiveFontSizes({ sm: 52, md: 58, lg: 64 })
+        ...responsiveFontSizes({ sm: 52, md: 58, lg: 64 }),
     },
     h2: {
         fontWeight: 800,
         lineHeight: 64 / 48,
         fontSize: pxToRem(32),
 
-        ...responsiveFontSizes({ sm: 40, md: 44, lg: 48 })
+        ...responsiveFontSizes({ sm: 40, md: 44, lg: 48 }),
     },
     h3: {
         fontWeight: 700,
         lineHeight: 1.5,
         fontSize: pxToRem(24),
-        ...responsiveFontSizes({ sm: 24, md: 30, lg: 32 })
+        ...responsiveFontSizes({ sm: 24, md: 30, lg: 32 }),
     },
     h4: {
         fontWeight: 700,
         lineHeight: 1.5,
         fontSize: pxToRem(40),
-        ...responsiveFontSizes({ sm: 30, md: 35, lg: 40 })
-    },
-    invitationSecondaryText: {
-        fontSize: pxToRem(20),
-        ...responsiveFontSizes({ sm: 20, md: 24, lg: 24 })
+        ...responsiveFontSizes({ sm: 30, md: 35, lg: 40 }),
     },
     adminH4: {
         fontWeight: 700,
         lineHeight: 1.5,
         fontSize: pxToRem(20),
         fontFamily: 'Dancing Script',
-        ...responsiveFontSizes({ sm: 20, md: 24, lg: 24 })
+        ...responsiveFontSizes({ sm: 20, md: 24, lg: 24 }),
     },
     h5: {
         fontWeight: 700,
         lineHeight: 1.5,
         fontSize: pxToRem(18),
 
-        ...responsiveFontSizes({ sm: 19, md: 20, lg: 20 })
+        ...responsiveFontSizes({ sm: 19, md: 20, lg: 20 }),
     },
     h6: {
         fontWeight: 700,
         lineHeight: 28 / 18,
         fontSize: pxToRem(48),
-        ...responsiveFontSizes({ sm: 30, md: 40, lg: 50 })
+        ...responsiveFontSizes({ sm: 30, md: 40, lg: 50 }),
     },
     adminH6: {
-      fontFamily: "Roboto, sans-serif",
-      fontWeight: 700,
-      lineHeight: 28 / 18,
-      fontSize: pxToRem(25),
-      ...responsiveFontSizes({ sm: 25, md: 30, lg: 35})
-   
+        fontFamily: 'Roboto, sans-serif',
+        fontWeight: 700,
+        lineHeight: 28 / 18,
+        fontSize: pxToRem(25),
+        ...responsiveFontSizes({ sm: 25, md: 30, lg: 35 }),
     },
     subtitle1: {
         fontWeight: 700,
         lineHeight: 1.5,
-        fontSize: pxToRem(30)
+        fontSize: pxToRem(30),
     },
     adminSubtitle1: {
         fontWeight: 700,
-        fontFamily: "Roboto, sans-serif",
+        fontFamily: 'Roboto, sans-serif',
         lineHeight: 1.5,
-        fontSize: pxToRem(20)
+        fontSize: pxToRem(20),
     },
     subtitle2: {
         fontWeight: 600,
         lineHeight: 22 / 14,
-        fontSize: pxToRem(14)
+        fontSize: pxToRem(14),
     },
     body1: {
         lineHeight: 1,
-        fontSize: pxToRem(30)
+        fontSize: pxToRem(30),
     },
     body2: {
         lineHeight: 22 / 14,
-        fontSize: pxToRem(28)
+        fontSize: pxToRem(28),
     },
     caption: {
         lineHeight: 1.5,
@@ -119,52 +114,68 @@ const typography = {
     },
     adminCaption: {
         lineHeight: 1.5,
-        fontFamily: "Roboto, sans-serif",
+        fontFamily: 'Roboto, sans-serif',
         fontSize: pxToRem(13),
     },
     overline: {
         fontWeight: 700,
         lineHeight: 1.5,
         fontSize: pxToRem(12),
-        textTransform: 'uppercase'
+        textTransform: 'uppercase',
     },
     button: {
         fontWeight: 700,
         lineHeight: 24 / 14,
         fontSize: pxToRem(20),
-        textTransform: 'capitalize'
+        textTransform: 'capitalize',
     },
     messageTitle: {
         lineHeight: 22 / 14,
         fontFamily: 'Dancing Script',
-        fontSize: pxToRem(20)
+        fontSize: pxToRem(20),
     },
     messageBody: {
         lineHeight: 1.5,
         fontFamily: 'Dancing Script',
-        fontSize: pxToRem(17)
+        fontSize: pxToRem(17),
     },
-    invitationFont: {
-        lineHeight: 1.5,
-        fontFamily: "Luxurious Script",
-        fontSize: pxToRem(90)
 
-    },
     SearchFont: {
-        fontFamily: "Imperial Script",
-        fontSize: pxToRem(40)
-
+        fontFamily: 'Imperial Script',
+        fontSize: pxToRem(40),
     },
     messageDate: {
         lineHeight: 1.5,
         fontSize: pxToRem(12),
-        fontFamily: 'Dancing Script'
+        fontFamily: 'Dancing Script',
     },
     invitadoName: {
         lineHeight: 1.5,
         fontSize: pxToRem(30),
-        fontFamily: 'Luxurious Script'
-    }
-}
+        fontFamily: 'Luxurious Script',
+    },
+    invitationFont: {
+        fontFamily: "", // Asegúrate de tenerla cargada en el index.html o Webfont
+        fontWeight: 900,
+        textShadow: '-2px -1px 1px  rgb(255,255,255)',
+        // Usamos una función para que el gradiente y el efecto metálico sean constantes
+        background:
+            'linear-gradient(to bottom, #F9F6EE 0%, #D4AF37 50%, #B28D42 100%)',
+        WebkitBackgroundClip: 'text',
+        // WebkitTextFillColor: 'transparent',
+         filter: 'drop-shadow(0 5px 15px rgba(0,0,0,0.8))',
+        // Responsive font size directamente en el tema
+        fontSize: '4rem',
+        '@media (min-width:900px)': {
+            fontSize: '8rem',
+        },
+    },
+    invitationSecondaryText: {
+       
+        color: '#ffffff',
+        textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+        // Aquí puedes definir el estilo de los items de "Sus triunfos", etc.
+    },
+};
 
-export default typography
+export default typography;

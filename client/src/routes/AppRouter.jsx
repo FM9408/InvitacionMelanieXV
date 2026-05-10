@@ -8,6 +8,7 @@ import { InvitacionNarrativa } from '../components/invitation/narrativeComponent
 import Homepage from '../pages/Homepage';
 import AsignaciondeMesas from '../pages/AsignaciónDeMesa';
 import GuestDashboard from '../pages/UserDashBoards';
+import InMemoriam from '../pages/inMemoriam';
 import { Paper, Typography } from '@mui/material';
 
 const AppRouter = () => {
@@ -26,7 +27,7 @@ const AppRouter = () => {
                     element={<GuestDashboard />}
                 />
             </Route>
-
+            <Route path='/inMemoriam' element={<InMemoriam />} />
             <Route path='/admin' element={<ProtectedRoute />}>
                 <Route path='' element={<Navigate to='dashboard' />} />
                 <Route path='' element={<AdminLayout />}>
