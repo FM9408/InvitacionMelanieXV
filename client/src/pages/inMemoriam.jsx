@@ -1,9 +1,9 @@
 import React from 'react';
 import { Box, Typography, Grid, Container, useTheme, IconButton } from '@mui/material';
-import inMemoriamBack from '../assets/images/InMemoriamBack.png'
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {ArrowBack as Backspace} from "@mui/icons-material"
+import { useSelector } from 'react-redux';
 
 const FotoTributo = ({ src, delay }) => (
     <Box
@@ -35,8 +35,17 @@ const FotoTributo = ({ src, delay }) => (
 const InMemoriam = () => {
     const theme = useTheme();
     const navigate = useNavigate();
+   
+    const {images} = useSelector((state) => state.images);
+    
+
+   
+
+    React.useEffect(() => {
+       
+    },[images])
     return (
-        <Container maxWidth="lg" sx={{ py: 12, color:theme.palette.common.white, textAlign: 'center', width:"100%",  height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', backgroundImage: `url(${inMemoriamBack})`, backgroundSize: 'cover', backgroundPosition: 'center', position:"relative" }}>
+        <Container maxWidth="lg" sx={{ py: 12, color:theme.palette.common.white, textAlign: 'center', width:"100%",  height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', backgroundImage: `url(${images.inMemoriam})`, backgroundSize: 'cover', backgroundPosition: 'center', position:"relative" }}>
             <motion.div
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}

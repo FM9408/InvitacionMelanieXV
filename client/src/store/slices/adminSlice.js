@@ -38,14 +38,23 @@ const initialState = {
 export const adminSlice = createSlice({
     name: 'admin',
     initialState,
-    reducers: {},
+    reducers: {
+        deleteFamiliaLocal: (state, action) => {
+            state.invitados = state.invitados.filter(
+                (familia) => familia.id !== action.payload
+            )
+        },
+            addFamiliaLocal: (state, action) => {
+                state.invitados = state.invitados.concat(action.payload)
+            }
+    },
     extraReducers: (builder) => {
         builder.addCase(fetchInvitados.pending, (state) => {
             state.loading = true
         })
         builder.addCase(fetchInvitados.fulfilled, (state, action) => {
             state.invitados = action.payload
-            state.loading = false
+            state.loadingAdmin = false
         })
         builder.addCase(fetchInvitados.rejected, (state, action) => {
             state.loading = false
@@ -53,5 +62,7 @@ export const adminSlice = createSlice({
         })
     }
 })
+
+export const { deleteFamiliaLocal, addFamiliaLocal } = adminSlice.actions
 
 export default adminSlice.reducer

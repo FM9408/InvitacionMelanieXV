@@ -1,92 +1,122 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { fetchInvitados } from '../../store/slices/adminSlice';
-import { IconButton } from '@mui/material';
-import { AddaFamily } from '../../store/slices/familiesSlice';
+import React, { useState, useMemo, useCallback } from 'react';
+import { useDispatch} from 'react-redux';
+import { IconButton, Tooltip, Zoom } from '@mui/material';
+import PropTypes from 'prop-types';
+
+// Iconos
 import AddIcon from '@mui/icons-material/Add';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EmailIcon from '@mui/icons-material/Email';
-import FamilyModal from '../../components/FamilyModal/FamilyModal';
-import { string } from 'prop-types';
-// import { registrarFamilia } from '../../api/invitationsApi'; // Tu función de Axios
 
-function HandleBottonIcon(mode) {
-    if (mode === 'Añadir') {
-        return <AddIcon />;
-    } else if (mode === 'Mensaje') {
-        return <EmailIcon />;
-    } else {
-        return <CheckCircleIcon />;
+// Componentes y Slices
+import FamilyModal from '../../components/FamilyModal/FamilyModal';
+import { AddaFamily } from '../../store/slices/familiesSlice';
+import { fetchInvitados } from '../../store/slices/adminSlice';
+
+/**
+ * Hook personalizado interno para manejar la lógica de iconos
+ * de forma limpia y eficiente.
+ */
+const getIconByMode = (mode) => {
+    switch (mode) {
+        case 'Añadir': return <AddIcon />;
+        case 'Mensaje': return <EmailIcon />;
+        default: return <CheckCircleIcon />;
     }
-}
+};
 
 export const GuestManagement = ({ mode, totalGuests }) => {
-    // 1. El estado para controlar el modal
     const dispatch = useDispatch();
-    const [icon, setIcon] = useState(HandleBottonIcon(mode));
-    const [error, setError] = useState({
-        state: false,
-        message: '',
-    });
-    const [modalConfig, setModalConfig] = useState({
-        open: false,
-        mode: mode,
-        data: null,
-    });
-    React.useEffect(() => {
-        setIcon(HandleBottonIcon(mode));
-    }, [mode]);
+    
+    // Estado para el modal
+    const [modalOpen, setModalOpen] = useState(false);
+    
+    // Memoizamos el icono para que no se recalcule innecesariamente
+    const icon = useMemo(() => getIconByMode(mode), [mode]);
 
-    function saveAndRfresh(data) {
-        try {
-            dispatch(AddaFamily(data));
-        } catch (error) {
-            setError(error);
-        }
-        setModalConfig({ ...modalConfig, open: false, data: null });
-    }
-    const handleClose = () =>
-        setModalConfig({ ...modalConfig, open: false, data: null });
+    // Límite de invitados (ejemplo basado en tu lógica anterior)
+    const isLimitReached = totalGuests >= 150;
 
+    // --- Manejadores de Eventos ---
+    
+    const handleOpen = useCallback(() => {
+        setModalOpen(true);
+    }, []);
+
+    const handleClose = useCallback(() => {
+        setModalOpen(false);
+    }, []);
+
+    /**
+     * Proceso de guardado perfeccionista:
+     * 1. Lanza la acción asíncrona a Redux (que debe impactar la DB).
+     * 2. No necesitamos refrescar localmente manualmente si el socket
+     * en App.jsx ya escucha 'newFamilyCreated' para disparar fetchInvitados.
+     */
     const handleSave = async (data) => {
-        // Aquí mandas los datos a PostgreSQL
         try {
-            // await registrarFamilia(data);
-            mode === 'Añadir' ?
-                saveAndRfresh(data)
-                // Refresca la lista de invitados después de agregar una familia
-            :   console.log('Modo no implementado aún');
+            if (mode === 'Añadir') {
+                // Suponiendo que AddaFamily es un thunk que hace el POST
+                await dispatch(AddaFamily(data)).unwrap();
+                
+                // Opcional: Solo si el socket tarda mucho en responder
+                // dispatch(fetchInvitados());
+                setTimeout(() => {
+                    dispatch(fetchInvitados());
+                }, 1000);
+            
+            } else {
+                console.warn(`Modo "${mode}" no implementado aún.`);
+            }
             handleClose();
-        } catch (error) {
-            console.error('Error al guardar:', error);
+        } catch (err) {
+            console.error('Error al guardar la familia:', err);
+            // Aquí podrías disparar un Snackbar/Alerta de error
         }
     };
 
     return (
-        <div>
-            <IconButton
-                onClick={() =>
-                    setModalConfig({ open: true, mode: mode, data: null })
-                }
-                disabled={totalGuests !== 150 ? false : true} // Ejemplo: desactivar si ya hay 10 invitados
+        <>
+            <Tooltip 
+                title={isLimitReached ? "Límite de invitados alcanzado" : `${mode} Familia`}
+                TransitionComponent={Zoom}
+                arrow
             >
-                {icon}
-            </IconButton>
+                <span> {/* Span necesario para mostrar tooltip en botones deshabilitados */}
+                    <IconButton
+                        color="primary"
+                        onClick={handleOpen}
+                        disabled={isLimitReached && mode === 'Añadir'}
+                        sx={{
+                            backgroundColor: 'background.paper',
+                            boxShadow: 1,
+                            '&:hover': { backgroundColor: 'action.hover' }
+                        }}
+                    >
+                        {icon}
+                    </IconButton>
+                </span>
+            </Tooltip>
 
-            {/* 2. El componente se coloca aquí, al final del JSX */}
-            <FamilyModal
-                open={modalConfig.open}
-                mode={modalConfig.mode}
-                onError={error}
-                key={modalConfig.mode}
-                initialData={modalConfig.data}
-                onClose={handleClose}
-                onSave={handleSave}
-            />
-        </div>
+            {modalOpen && (
+                <FamilyModal
+                    open={modalOpen}
+                    mode={mode}
+                    onClose={handleClose}
+                    onSave={handleSave}
+                    // Pasamos solo los datos necesarios para evitar re-renders
+                    key={`${mode}-modal`} 
+                />
+            )}
+        </>
     );
 };
 
 GuestManagement.propTypes = {
-    mode: string.isRequired,
+    mode: PropTypes.oneOf(['Añadir', 'Mensaje', 'Confirmar']).isRequired,
+    totalGuests: PropTypes.number
+};
+
+GuestManagement.defaultProps = {
+    totalGuests: 0
 };

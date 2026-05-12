@@ -25,7 +25,11 @@ export const AddaFamily = createAsyncThunk(
 const familiesSlice = createSlice({
     name: 'familias',
     initialState,
-    reducers: { },
+    reducers: { 
+        setFamilias: (state, action) => {
+            state.familias = action.payload
+        }
+    },
     extraReducers: (builder) => {
         builder.addCase(AddaFamily.pending, (state) => {
             state.loading = true
@@ -41,5 +45,6 @@ const familiesSlice = createSlice({
     }
 })
 
+export const { setFamilias } = familiesSlice.actions
 
 export default familiesSlice.reducer

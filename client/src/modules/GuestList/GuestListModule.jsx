@@ -1,3 +1,5 @@
+import React, { useState,  useContext } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import {
     Table,
     TableBody,
@@ -9,153 +11,135 @@ import {
     IconButton,
     Grid,
     Box,
+    Tooltip,
+    Paper,
 } from '@mui/material';
-import React from 'react';
-import  UserContext from '../../hooks/Contexts/UserContext';
-import { LoadingCircle } from '../../components/Decorations/LoadingCircle';
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchInvitados, deleteFamilia } from '../../store/slices/adminSlice';
+
+// Iconos
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+
+// Contexto y Slices
+import { LoadingCircle } from '../../components/Decorations/LoadingCircle';
+import { deleteFamilia,deleteFamiliaLocal} from '../../store/slices/adminSlice';
 import FamilyModal from '../../components/FamilyModal/FamilyModal';
 
-// const guests = [
-//   { id: 1, nombre: 'Familia Medina', pases: 4, estado: 'Confirmado' },
-//   { id: 2, nombre: 'Juan Pérez', pases: 2, estado: 'Pendiente' },
-//   { id: 3, nombre: 'Dra. Magda', pases: 1, estado: 'Cancelado' },
-// ];
-
-// const getChipColor = (status) => {
-//     if (
-//         status === 'Confirmado' ||
-//         status === 'Aprobado' ||
-//         status === 'Confirmada'
-//     )
-//         return 'success';
-//     if (status === 'Pendiente') return 'warning';
-//     return 'error';
-// };
-
 const GuestListModule = () => {
-    let [guests, setGuests] = React.useState([]);
-    const [progress, setProgress] = React.useState(0);
-    const [modalOpen, setModalOpen] = React.useState(false);
-    const [modalData, setModalData] = React.useState({});
-    const user = React.useContext(UserContext);
     const dispatch = useDispatch();
-    let { invitados, loadingAdmin } = useSelector((state) => state.admin);
-    const [loadingInfo, setLoadingInfo] = React.useState(true);
+  
 
-    function editModal(id) {
-        setModalData(invitados.find((familia) => familia.id === id));
-        setModalOpen(true);
-    }
+    // Selectores de Redux
+    const { invitados} = useSelector((state) => state.admin);
 
+    // Estados locales
+    const [progress, setProgress] = useState(0);
+    const [loadingInfo, setLoadingInfo] = useState(true);
+    const [modalConfig, setModalConfig] = useState({ open: false, data: null });
+
+    // --- Lógica de Carga Inicial ---
     React.useEffect(() => {
-        if (user.visited === false || invitados.length === 0) {
-            setLoadingInfo(true);
-            setGuests(invitados);
-            setTimeout(() => {
-                setProgress(100);
-                setLoadingInfo(false);
-            }, 4000);
-        } else {
+        // Si ya tenemos invitados, no necesitamos mostrar el loading de 4 segundos
+        if (invitados.length > 0) {
             setLoadingInfo(false);
-            setGuests(invitados);
-            setProgress(100);
+            return;
+         }
+        
+        // Solo si está vacío, esperamos
+        const timer = setTimeout(() => setLoadingInfo(false), 2000);
+        return () => {   
+            clearTimeout(timer);
         }
-    }, [progress, guests.length, loadingAdmin]);
-    function deleteHandler(id) {
-        dispatch(deleteFamilia(id));
-        setTimeout(() => {
-            dispatch(fetchInvitados());
-        }, 500);
-    }
+    }, [invitados, loadingInfo, setLoadingInfo ]); // NO dependas de 'progress' aquí
+
+    // --- Manejadores de Acciones ---
+    const handleEdit = (familia) => {
+        setModalConfig({ open: true, data: familia });
+    };
+
+    const handleDelete = (id) => {
+        // Confirmación simple antes de borrar (Perfeccionismo)
+        if (globalThis.confirm('¿Estás seguro de eliminar esta familia?')) {
+            dispatch(deleteFamilia(id));
+            dispatch(deleteFamiliaLocal(id));
+            // No es necesario fetchInvitados aquí si tu backend emite un socket
+            // que App.jsx ya escucha para refrescar la lista.
+        }
+    };
+
+    // Función para determinar el color del chip de asistencia
+    const getAssistColor = (status) => {
+        switch (status) {
+            case 'Confirmado':
+                return 'success';
+            case 'Pendiente':
+                return 'warning';
+            default:
+                return 'error';
+        }
+    };
 
     return (
-        <Box>
+        <Box sx={{ width: '100%', overflow: 'hidden' }}>
             {loadingInfo ?
-                <Box
-                    sx={{
-                        width: '100%',
-                        alignItems: 'center',
-                        height: 'max-content',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        padding: '2rem',
-                        borderRadius: '8px',
-                    }}
-                >
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}>
                     <LoadingCircle
                         progress={progress}
                         setProgress={setProgress}
                     />
                 </Box>
-            :   <TableContainer>
-                    <Table>
+            :   <TableContainer
+                    component={Paper}
+                    elevation={0}
+                    sx={{ maxHeight: '70vh' }}
+                >
+                    <Table stickyHeader size='small'>
                         <TableHead>
                             <TableRow>
-                                <TableCell
-                                    sx={{ fontFamily: 'Roboto, sans-serif',fontSize:"small" }}
-                                >
+                                <TableCell sx={{ fontWeight: 'bold' }}>
                                     Familia
                                 </TableCell>
                                 <TableCell
-                                    sx={{ fontFamily: 'Roboto, sans-serif',fontSize:"small" }}
                                     align='center'
+                                    sx={{ fontWeight: 'bold' }}
                                 >
                                     Pases
                                 </TableCell>
                                 <TableCell
-                                    sx={{ fontFamily: 'Roboto, sans-serif' ,fontSize:"small"}}
                                     align='center'
+                                    sx={{ fontWeight: 'bold' }}
                                 >
-                                    Estado
+                                    Vista
                                 </TableCell>
                                 <TableCell
-                                    sx={{ fontFamily: 'Roboto, sans-serif', fontSize:"small"}}
                                     align='center'
+                                    sx={{ fontWeight: 'bold' }}
                                 >
                                     Miembros
                                 </TableCell>
                                 <TableCell
-                                    sx={{ fontFamily: 'Roboto, sans-serif', fontSize:"small"}}
                                     align='right'
+                                    sx={{ fontWeight: 'bold' }}
                                 >
                                     Acciones
                                 </TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {guests.map((guest) => (
-                                <TableRow key={guest.id}>
+                            {invitados.map((guest) => (
+                                <TableRow key={guest.id} hover>
                                     <TableCell
-                                        fontWeight='500'
                                         sx={{
-                                            maxWidth: {
-                                                xs: '100px',
-                                                md: '200px',
-                                            },
-                                            fontFamily: 'Roboto, sans-serif',
-                                            fontSize:"small",
-                                            textOverflow: 'ellipsis',
-                                            overflow: 'auto',
-                                            overflowWrap: 'break-word',
-                                            transition: 'all .2s ease-in-out ',
+                                            fontWeight: 500,
+                                            fontSize: '1.7rem',
+                                            maxWidth: `${100 / 4}%`,
                                         }}
                                     >
                                         {guest.apellido}
                                     </TableCell>
-                                    <TableCell
-                                        sx={{
-                                            fontFamily: 'Roboto, sans-serif',
-                                            fontSize:"small",
-                                        }}
-                                        align='center'
-                                    >
+                                    <TableCell align='center'>
                                         {guest.pases}
                                     </TableCell>
-                                    <TableCell align='center'>
+                                    <TableCell align='center' sx={{maxWidth: `${100 / 4}%`}}>
                                         <Chip
                                             label={
                                                 guest.hasViewed ? 'Vista' : (
@@ -167,69 +151,66 @@ const GuestListModule = () => {
                                                     'error'
                                                 )
                                             }
-                                            sx={{
-                                                fontFamily:
-                                                    'Roboto, sans-serif',
-                                            }}
-                                            size='small'
-                                            variant='outlined'
+                                            size='medium'
+                                            variant='filled'
+                                            sx={{ fontSize: '1.3rem' }}
                                         />
                                     </TableCell>
                                     <TableCell align='center'>
                                         <Grid
                                             container
-                                            justifyContent={'space-around'}
+                                            spacing={0.5}
+                                            justifyContent='center'
                                         >
                                             {guest.miembros.map((member) => (
-                                                <Grid item key={member.id}>
-                                                    <Chip
-                                                        label={member.nombre}
-                                                        size='small'
-                                                        sx={{
-                                                            fontFamily:
-                                                                'Roboto, sans-serif',
-                                                        }}
-                                                        variant='filled'
-                                                        color={
-                                                            (
-                                                                member.willAssist ===
-                                                                'Confirmado'
-                                                            ) ?
-                                                                'success'
-                                                            : (
-                                                                member.willAssist ===
-                                                                'Pendiente'
-                                                            ) ?
-                                                                'warning'
-                                                            :   'error'
-                                                        }
-                                                    />
+                                                <Grid item key={member.id} sx={{maxWidth: `${100 / invitados.length}%`}}>
+                                                    <Tooltip
+                                                        title={`${member.nombre}: ${member.willAssist}`}
+                                                    >
+                                                        <Chip
+                                                            label={
+                                                                member.nombre
+                                                            }
+                                                            size='small'
+                                                            color={getAssistColor(
+                                                                member.willAssist
+                                                            )}
+                                                            sx={{
+                                                                fontSize:
+                                                                    '1.7rem',
+                                                            }}
+                                                        />
+                                                    </Tooltip>
                                                 </Grid>
                                             ))}
                                         </Grid>
                                     </TableCell>
-                                    <TableCell align='right'>
-                                        {guest.isAccepted !== 'Cancelado' && (
-                                            <Box>
-                                                <IconButton
-                                                    onClick={() =>
-                                                        editModal(guest.id)
-                                                    }
-                                                    size='small'
-                                                >
-                                                    <EditIcon fontSize='small' />
-                                                </IconButton>
-                                                <IconButton
-                                                    onClick={() =>
-                                                        deleteHandler(guest.id)
-                                                    }
-                                                    size='small'
-                                                    color='error'
-                                                >
-                                                    <DeleteIcon fontSize='small' />
-                                                </IconButton>
-                                            </Box>
-                                        )}
+                                    <TableCell align='right' sx={{maxWidth: `${100 / 4}%`}}>
+                                        <Box
+                                            sx={{
+                                                display: 'flex',
+                                                justifyContent: 'flex-end',
+                                            }}
+                                        >
+                                            <IconButton
+                                                onClick={() =>
+                                                    handleEdit(guest)
+                                                }
+                                                size='small'
+                                                color='primary'
+                                            >
+                                                <EditIcon fontSize='small' />
+                                            </IconButton>
+                                            <IconButton
+                                                onClick={() =>
+                                                    handleDelete(guest.id)
+                                                }
+                                                size='small'
+                                                color='error'
+                                            >
+                                                <DeleteIcon fontSize='small' />
+                                            </IconButton>
+                                        </Box>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -237,12 +218,14 @@ const GuestListModule = () => {
                     </Table>
                 </TableContainer>
             }
-            {modalOpen && (
+
+            {/* Modal de Edición */}
+            {modalConfig.open && (
                 <FamilyModal
-                    initialData={modalData}
-                    onClose={() => setModalOpen(false)}
-                    open={modalOpen}
-                    mode={'Editar'}
+                    initialData={modalConfig.data}
+                    onClose={() => setModalConfig({ open: false, data: null })}
+                    open={modalConfig.open}
+                    mode='Editar'
                 />
             )}
         </Box>

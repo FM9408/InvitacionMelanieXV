@@ -1,32 +1,22 @@
-# ETAPA 1: Construcción
-FROM node:20-slim AS builder
+# Usa la imagen completa de node para asegurar que tenga los certificados de red
+FROM node:20
+
+# Crear directorio de trabajo
 WORKDIR /app
 
-# Copiamos archivos de dependencias
+# Copiar archivos de dependencias
 COPY package*.json ./
 
-# Instalamos TODAS las dependencias (necesarias para el build)
+# Instalar dependencias
 RUN npm install
 
-# Copiamos el resto del código
+# Copiar el resto del código
 COPY . .
 
-# SI TIENES UN FRONTEND QUE COMPILAR, DESCOMENTA LA SIGUIENTE LÍNEA:
-# RUN npm run build --prefix client
-
-# ETAPA 2: Producción (Esta es la que realmente se sube a Cloud Run)
-FROM node:20-slim
-WORKDIR /app
-
-# Definimos el entorno
+# Cloud Run usa el 8080. Si tu código usa API_PORT, asegúrate que lea process.env.PORT
+ENV API_PORT=8080
 ENV NODE_ENV=production
-
-# Copiamos las dependencias instaladas y el código desde la etapa anterior
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app ./
-
-# Cloud Run usa el puerto 8080 por defecto
 EXPOSE 8080
+EXPOSE 4000
 
-# Al estar index.js en la raíz, este comando es correcto
 CMD ["node", "index.js"]

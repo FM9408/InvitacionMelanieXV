@@ -1,19 +1,36 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, Typography, Container, useTheme, Stack, Grid } from '@mui/material';
-import melanieWRose from '../../assets/images/melanieWrose.png';
+import { Box, Typography, Container, Stack, Grid } from '@mui/material';
 import { useScroll, useTransform, motion } from 'framer-motion';
 import FamilyModal from '../FamilyModal/FamilyModal';
 import PropTypes from 'prop-types';
-import roseGarden from '../../assets/images/background.png';
 import YardIcon from '@mui/icons-material/Yard';
-import imageMela1 from '../../assets/images/imageMela!.jpeg';
-import imageMela2 from '../../assets/images/imageMela2.jpeg';
-import gardenOfRoses from '../../assets/images/gardenofRoses.png';
-import roseBackground from '../../assets/images/roseBack.png';
-import RoseTapiz from '../../assets/images/roseBack2.png';
+
+import { useSelector } from 'react-redux';
 // Importa este icono o tu SVG de rosa
-const frasesArray = ["¿Te lo vas a perder?", "¿Cómo podrías faltar?", "¡Será inolvidable!", "¡No puedes faltar!", "¡Será un día mágico!", "¡No te lo puedes perder!", "¡Será una celebración épica!", "¡Será un día para recordar!", "¡No puedes faltar a esta fiesta!", "¡Será un evento único!"];
-const introduccionFrases = [ "el mundo se iluminó con tu llegada...", "el universo celebró tu existencia...", "una estrella nació para brillar...", "la alegría se multiplicó con tu llegada...", "el amor se hizo más grande con tu nacimiento...", "el tiempo se detuvo para celebrar tu llegada...", "la magia se hizo realidad con tu nacimiento...", "el destino sonrió con tu llegada...", "la felicidad se desbordó con tu nacimiento...", "el mundo se volvió un lugar mejor con tu llegada..."];
+const frasesArray = [
+    '¿Te lo vas a perder?',
+    '¿Cómo podrías faltar?',
+    '¡Será inolvidable!',
+    '¡No puedes faltar!',
+    '¡Será un día mágico!',
+    '¡No te lo puedes perder!',
+    '¡Será una celebración épica!',
+    '¡Será un día para recordar!',
+    '¡No puedes faltar a esta fiesta!',
+    '¡Será un evento único!',
+];
+const introduccionFrases = [
+    'el mundo se iluminó con tu llegada...',
+    'el universo celebró tu existencia...',
+    'una estrella nació para brillar...',
+    'la alegría se multiplicó con tu llegada...',
+    'el amor se hizo más grande con tu nacimiento...',
+    'el tiempo se detuvo para celebrar tu llegada...',
+    'la magia se hizo realidad con tu nacimiento...',
+    'el destino sonrió con tu llegada...',
+    'la felicidad se desbordó con tu nacimiento...',
+    'el mundo se volvió un lugar mejor con tu llegada...',
+];
 const MarcoDorado = ({ imagen }) => (
     <Box
         sx={{
@@ -100,13 +117,13 @@ export const InvitacionNarrativa = () => {
     const mainAudio = useRef(
         new Audio('/assets/audio/After_the_Masquerade.mp3')
     );
-   const [frase, setFrase] = useState('');
-   const [introduccionFrase, setIntroduccionFrase] = useState('');
+    const { images } = useSelector((state) => state.images);
+    const [frase, setFrase] = useState('');
+    const [introduccionFrase, setIntroduccionFrase] = useState('');
     let volume = useRef(0);
     const containerRef = useRef(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [hasOpened, setHasOpened] = useState(false);
-  
 
     // Configuración de velocidad (ajústalo a tu gusto)
     const { scrollYProgress } = useScroll({
@@ -124,25 +141,24 @@ export const InvitacionNarrativa = () => {
         [0.2, 0.35],
         [0, -30]
     );
-      
+
     const startAudio = () => {
-           
-            mainAudio.current.currentTime = 0;
-            setTimeout(() => {
-                mainAudio.current.play();
-            }, 2000);
-            const volumeInterval = setInterval(() => {               
-                if (volume.current < 1) {
-                    volume.current = Math.min(volume.current + 0.01, 1);
-                    mainAudio.current.volume = volume.current;
-                } else {
-                    clearInterval(volumeInterval);
-                }
-            }, 700);
-            globalThis.removeEventListener('click', startAudio);
-            globalThis.addEventListener('stop', stopMusic);
-        };
-       const stopMusic = () => {
+        mainAudio.current.currentTime = 0;
+        setTimeout(() => {
+            mainAudio.current.play();
+        }, 2000);
+        const volumeInterval = setInterval(() => {
+            if (volume.current < 1) {
+                volume.current = Math.min(volume.current + 0.01, 1);
+                mainAudio.current.volume = volume.current;
+            } else {
+                clearInterval(volumeInterval);
+            }
+        }, 700);
+        globalThis.removeEventListener('click', startAudio);
+        globalThis.addEventListener('stop', stopMusic);
+    };
+    const stopMusic = () => {
         const volumeInterval = setInterval(() => {
             if (volume.current >= 0) {
                 volume.current = Math.max(volume.current - 0.01, 0);
@@ -162,22 +178,25 @@ export const InvitacionNarrativa = () => {
     const photosRotateX = useTransform(scrollYProgress, [0, 0.35], [85, 20]);
     const photosZ = useTransform(scrollYProgress, [0.2, 0.35], [-400, 0]);
     const leftPhotoX = useTransform(scrollYProgress, [0.2, 0.35], [0, -100]);
-   
+
     const rightPhotoX = useTransform(scrollYProgress, [0.2, 0.35], [0, 100]);
-    
+
     // Abrir modal al final
     useEffect(() => {
         mainAudio.current.loop = false;
-      
-     
+
         globalThis.history.scrollRestoration = 'manual';
         window.scrollTo(0, 0);
         let requestID;
         const totalDurationMS = 50000; // 60 segundos
-        console.log(globalThis.location.pathname.split('/')[1]);
+       
         const startTime = performance.now();
-        if (modalOpen === false && globalThis.location.pathname.split('/')[1] === 'user' && !globalThis.location.pathname.split('/')[3] ) {
-            dispatchEvent(new Event('start') );
+        if (
+            modalOpen === false &&
+            globalThis.location.pathname.split('/')[1] === 'user' &&
+            !globalThis.location.pathname.split('/')[3]
+        ) {
+            dispatchEvent(new Event('start'));
         } else {
             mainAudio.current.pause();
             dispatchEvent(new Event('stop'));
@@ -208,8 +227,14 @@ export const InvitacionNarrativa = () => {
         }, 1000);
 
         return () => {
-            setFrase(frasesArray[Math.floor(Math.random() * frasesArray.length)]);
-            setIntroduccionFrase(introduccionFrases[Math.floor(Math.random() * introduccionFrases.length)]);
+            setFrase(
+                frasesArray[Math.floor(Math.random() * frasesArray.length)]
+            );
+            setIntroduccionFrase(
+                introduccionFrases[
+                    Math.floor(Math.random() * introduccionFrases.length)
+                ]
+            );
             globalThis.addEventListener('start', startAudio);
             cancelAnimationFrame(requestID);
             globalThis.removeEventListener('click', startAudio);
@@ -239,7 +264,7 @@ export const InvitacionNarrativa = () => {
                     <Box
                         sx={{
                             textAlign: 'center',
-                            backgroundImage: `url(${roseBackground})`,
+                            backgroundImage: `url(${images.roseBack1})`,
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
@@ -250,24 +275,28 @@ export const InvitacionNarrativa = () => {
                             position: 'relative',
                         }}
                     >
-                        <Grid container justifyContent="center" alignItems="center" spacing={2} direction="column">
+                        <Grid
+                            container
+                            justifyContent='center'
+                            alignItems='center'
+                            spacing={2}
+                            direction='column'
+                        >
                             <Grid item>
-                                 <TypografyItem
-                            progress={scrollYProgress}
-                            range={[0.02, 0.1]}
-                            text="Hace 15 años,"
-                        />
-                           
+                                <TypografyItem
+                                    progress={scrollYProgress}
+                                    range={[0.02, 0.1]}
+                                    text='Hace 15 años,'
+                                />
                             </Grid>
                             <Grid item>
-                                 <TypografyItem
-                            progress={scrollYProgress}
-                            range={[0.02, 0.2]}
-                            text={introduccionFrase}
-                        />
+                                <TypografyItem
+                                    progress={scrollYProgress}
+                                    range={[0.02, 0.2]}
+                                    text={introduccionFrase}
+                                />
                             </Grid>
-                            </Grid>
-                       
+                        </Grid>
                     </Box>
                 </SectionWrapper>
 
@@ -282,7 +311,7 @@ export const InvitacionNarrativa = () => {
                             justifyContent: 'center',
                             alignItems: 'center',
                             position: 'relative',
-                            backgroundImage: `url(${gardenOfRoses})`,
+                            backgroundImage: `url(${images.gardenOfRoses})`,
                             backgroundSize: 'cover',
                             backgroundPosition: 'center',
                             zIndex: 0,
@@ -306,7 +335,7 @@ export const InvitacionNarrativa = () => {
                                 marginTop: { xs: '-175px', md: '-245px' },
                             }}
                         >
-                            <MarcoDorado imagen={imageMela1} />
+                            <MarcoDorado imagen={images.urlMela1} />
                         </Box>
 
                         {/* MARCO DERECHO */}
@@ -327,7 +356,7 @@ export const InvitacionNarrativa = () => {
                                 marginTop: { xs: '-175px', md: '-245px' },
                             }}
                         >
-                            <MarcoDorado imagen={imageMela2} />
+                            <MarcoDorado imagen={images.urlMela2} />
                         </Box>
                     </Box>
                 </SectionWrapper>
@@ -338,11 +367,8 @@ export const InvitacionNarrativa = () => {
                             <TypografyItem
                                 progress={scrollYProgress}
                                 range={[0.4, 0.5]}
-                                text="Ahora..."
+                                text='Ahora...'
                             />
-                                
-                            
-                       
                         </Box>
                     </Container>
                 </SectionWrapper>
@@ -357,7 +383,7 @@ export const InvitacionNarrativa = () => {
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
-                            backgroundImage: `url(${roseGarden})`,
+                            backgroundImage: `url(${images.background})`,
                             backgroundSize: 'cover',
                             backgroundPosition: 'center',
                             zIndex: 0,
@@ -385,7 +411,7 @@ export const InvitacionNarrativa = () => {
                             }}
                         >
                             <MelanieImage
-                                image={melanieWRose}
+                                image={images.urlMelanieWRose}
                                 progress={scrollYProgress}
                                 range={[0.53, 0.63, 0.73, 0.83]}
                             />
@@ -398,7 +424,7 @@ export const InvitacionNarrativa = () => {
                             <Typography
                                 variant='InvitationSecondaryText'
                                 sx={{
-                                   fontFamily: "Cinzel", // Asegúrate de tenerla cargada en el index.html o Webfont
+                                    fontFamily: 'Cinzel', // Asegúrate de tenerla cargada en el index.html o Webfont
                                     color: '#D4AF37', // Dorado para el título
                                     mb: 8, // Más espacio debajo del título
                                     fontWeight: 'bold',
@@ -442,7 +468,7 @@ export const InvitacionNarrativa = () => {
                     <Box
                         sx={{
                             textAlign: 'center',
-                            backgroundImage: `url(${RoseTapiz})`,
+                            backgroundImage: `url(${images.roseBack2})`,
                             display: 'flex',
                             flexDirection: 'column',
                             justifyContent: 'center',
@@ -454,23 +480,28 @@ export const InvitacionNarrativa = () => {
                             position: 'relative',
                         }}
                     >
-                       <Grid container justifyContent="center" alignItems="center" spacing={2} direction="column">
+                        <Grid
+                            container
+                            justifyContent='center'
+                            alignItems='center'
+                            spacing={2}
+                            direction='column'
+                        >
                             <Grid item>
-                                 <TypografyItem
-                            progress={scrollYProgress}
-                            range={[0.8, .83]}
-                            text="Sus XV años"
-                        />
-                           
+                                <TypografyItem
+                                    progress={scrollYProgress}
+                                    range={[0.8, 0.83]}
+                                    text='Sus XV años'
+                                />
                             </Grid>
-                            </Grid>
-                            <Grid item>
-                                 <TypografyItem
-                            progress={scrollYProgress}
-                            range={[0.84, .87]}
-                            text={frase}
-                        />
-                            </Grid>
+                        </Grid>
+                        <Grid item>
+                            <TypografyItem
+                                progress={scrollYProgress}
+                                range={[0.84, 0.87]}
+                                text={frase}
+                            />
+                        </Grid>
                     </Box>
                 </SectionWrapper>
             </Box>
@@ -564,7 +595,6 @@ const ItemText = ({ text, progress, range }) => {
             <Typography
                 variant='invitationSecondaryText' // Asumiendo que definiste esto en el theme
                 sx={{
-                   
                     color: '#fff',
                     textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
                     fontWeight: 500,
@@ -595,9 +625,10 @@ const MelanieImage = ({ progress, range, image }) => {
     return (
         <motion.div>
             <motion.img
-                style={{ x, y: "10%", opacity }}
+                style={{ x, y: '10%', opacity }}
                 src={image}
-                alt='Melanie'/>
+                alt='Melanie'
+            />
         </motion.div>
     );
 };
@@ -612,20 +643,21 @@ const TypografyItem = ({ progress, range, text }) => {
     const opacity = useTransform(progress, range, [0, 1]);
     const width = useTransform(progress, range, ['0', `${text.length}ch`]);
 
-    return <motion.div style={{ opacity}}>
-    <Typography
-                                    variant='invitationFont'
-                                    sx={{
-                                        color: '#D4AF37',
-                                        fontWeight: 'bold',// Ancho basado en la longitud del texto
-                            
-                                        textAlign: 'center',
-                                    }}
-                                >
-            { text}
-                                </Typography>
-    
-    </motion.div>;
+    return (
+        <motion.div style={{ opacity }}>
+            <Typography
+                variant='invitationFont'
+                sx={{
+                    color: '#D4AF37',
+                    fontWeight: 'bold', // Ancho basado en la longitud del texto
+
+                    textAlign: 'center',
+                }}
+            >
+                {text}
+            </Typography>
+        </motion.div>
+    );
 };
 
 TypografyItem.propTypes = {

@@ -20,7 +20,7 @@ import {
     Place as PlaceIcon,
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
-import { sendMensaje } from '../store/slices/mensajesSlice';
+import { sendMensaje } from '../store/slices/mensajesSlice.jsx';
 
 const mensajes = [
     'No olvides escribir tus buenos deseos para la quinceañera en la sección de mensajes!',

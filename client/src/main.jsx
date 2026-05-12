@@ -9,9 +9,8 @@ import App from './App.jsx'
 import axios from 'axios';
 
 
-axios.defaults.baseURL = `${import.meta.env.VITE_API_URL}:${import.meta.env.VITE_API_PORT}`
+axios.defaults.baseURL = `${import.meta.env.VITE_API_URL}`
 
-console.log(axios.defaults.baseURL)
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>

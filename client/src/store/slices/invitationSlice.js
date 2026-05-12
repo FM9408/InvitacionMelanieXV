@@ -1,7 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
-    datos: {miembros: []},
+    datos: { miembros: [] },
+    images: {},
+    confirmationNotifications: [],
     loading: false,
     error: null
 }
@@ -16,22 +18,17 @@ const invitadoSlice = createSlice({
         setLoading: (state, action) => {
             state.loading = action.payload
         },
-        setAssist: (state, action) => { 
-            state.datos.miembros.forEach(miembro => {
-                if (miembro.id === action.payload) {
-                    miembro.isConfirmed = "Confirmado"
-                }
-             })
+        setImages: (state, action) => {
+            state.images = action.payload
         },
-        setAbsent: (state, action) => { 
-            state.datos.miembros.forEach((miembro) => {
-                if (miembro.id === action.payload) {
-                    miembro.isConfirmed = 'Declinado';
-                }
-            });
+        setConfirmationNotifications: (state, action) => {
+            state.confirmationNotifications = state.confirmationNotifications.concat(action.payload)
+
         }
+
+        
     }
 })
 
-export const { setInvitado, setLoading } = invitadoSlice.actions
+export const { setInvitado, setLoading, setImages, setConfirmationNotifications} = invitadoSlice.actions
 export default invitadoSlice.reducer

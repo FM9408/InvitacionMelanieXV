@@ -20,12 +20,27 @@ const invitadoModel = (sequelize) => {
                 type: DataTypes.STRING,
                 allowNull: false
             },
-            // nombreCompleto: {
-            //     type: DataTypes.VIRTUAL,
-            //     get() {
-            //         return `${this.nombre} ${this.apellido}`
-            //     }
-            // },
+            nombreCompleto: {
+                type: DataTypes.VIRTUAL,
+                get() {
+                    return `${this.nombre} ${this.apellido}`
+                }
+            },
+            confirmationDate: {
+                type: DataTypes.DATE,
+                allowNull: true,
+               
+                get(){
+                    return this.getDataValue('confirmationDate');
+                },
+                set (value) {
+                    const time = new Date(value).getDate()
+                    const month = new Date(value).getMonth()
+                    const year = new Date(value).getFullYear()
+                    this.setDataValue('confirmationDate', `${time}/${month}/${year}`);
+                }
+            },
+
 
             mesa: {
                 type: DataTypes.INTEGER,

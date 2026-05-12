@@ -32,9 +32,10 @@ async function createNewMensaje(req, res) {
         const newMessage = await Mensaje.create(
             {
                 mensaje,
+                apellido: getFamily.apellido,
                 familia_Id: familiaID,
             },
-            { transaction: t }
+            { transaction: t, include: { all: true, nested: true } }
         );
         
        
@@ -67,4 +68,47 @@ async function getAll(req, res) {
     }
 }
 
-module.exports = {createNewMensaje,getAll}
+
+async function deleteMensaje(req, res) {
+    const { id } = req.params
+    const t = await conn.transaction()
+    try {
+        const mensaje = await Mensaje.findOne({
+            where: {
+                id
+            },
+            include: {
+                all: true,
+                nested: true
+            }
+        });
+        if (!mensaje) {
+            return res.status(404).json({ error: "mensaje no encontrado" });
+        }
+       
+        await t.commit();
+        const familia = await Familia.findOne({
+            where: {
+                id: mensaje.familia_Id
+            },
+            include: {
+                all: true,
+                nested: true
+            }
+        });
+        await familia.removeMensaje(mensaje);
+        connectionEmitter.emit('mensajeEliminado', mensaje)
+        await mensaje.destroy();
+        res.status(200).json({
+            mensaje: 'Mensaje eliminado correctamente'
+        });
+        
+    } catch (error) {
+        await t.rollback();
+        res.status(500).json({ error: error.message });
+    }
+}
+
+
+
+module.exports = {createNewMensaje,getAll,deleteMensaje}

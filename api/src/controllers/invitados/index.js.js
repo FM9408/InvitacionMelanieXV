@@ -123,7 +123,8 @@ async function setConfirmation (req, res) {
     try { 
         invitados.willAssist.forEach(async (invitado) => { 
             await Invitado.update({
-                willAssist: "Confirmado"
+                willAssist: "Confirmado",
+                confirmationdate: Date.now()
             }, {
                 where: {
                     id: invitado
@@ -132,14 +133,17 @@ async function setConfirmation (req, res) {
         })
         
         invitados.wontAssist.forEach(async (invitado) => {
-            await Invitado.update({
-                willAssist: "No Confirmado"
+            const findInvitado = await Invitado.update({
+                willAssist: "Rechazada",
+
             }, {
                 where: {
                     id: invitado
                 }
             })
+            connectionEmitter.emit("invitationsUpdated", findInvitado )
         })
+        
         res.status(200).json({ message: 'Invitados actualizados' })
     }catch (error) {
         res.status(500).json({ error: error.message })

@@ -14,16 +14,16 @@ module.exports = (sequelize) => {
             allowNull: false
         },
         enviado: {
-            type: DataTypes.STRING,
+            type: DataTypes.DATE,
             allowNull: false,
-            defaultValue: new Date(Date.now())
+            defaultValue: Date.now()
 
         },
         enviadoHace: {
             type: DataTypes.VIRTUAL,
             get() {
                 const timestamp = new Date(this.enviado).getTime()
-                console.log((Date.now() - timestamp) / 60000)
+               
                 return Math.floor((Date.now() - timestamp) / 60000) 
             }
         } 
