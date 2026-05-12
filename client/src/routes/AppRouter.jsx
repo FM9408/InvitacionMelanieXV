@@ -32,7 +32,8 @@ const AppRouter = () => {
                 <Route path='' element={<Navigate to='dashboard' />} />
                 <Route path='' element={<AdminLayout />}>
             <Route path='dashboard' element={<Dashboard />} />
-          <Route path='mesas' element={<AsignaciondeMesas />} />
+                    <Route path='mesas' element={<AsignaciondeMesas />} />
+                    <Route path='inMemoriam' element={<InMemoriam />} />
                 </Route>
             </Route>
 

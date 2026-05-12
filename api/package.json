@@ -8,7 +8,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "start nodemon -L",
-    "start": "node index.js"
+    "start": "node index.js",
+    "deploy": "gcloud builds submit --config cloudbuild.yaml ."
   },
   "dependencies": {
     "body-parser": "^2.2.2",

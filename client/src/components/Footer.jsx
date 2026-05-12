@@ -1,4 +1,4 @@
-import { Box, Typography, useTheme, alpha } from '@mui/material'
+import { Box, Typography, useTheme } from '@mui/material'
 
 const Footer = () => {
     const theme = useTheme()
@@ -15,8 +15,7 @@ const Footer = () => {
         }}
         >
             <Typography variant='body2' color={theme.palette.common.white}>
-                © {new Date().getFullYear()} - Gestión de Eventos | En memoria de
-                Gonzalo y Magda
+                © {new Date().getFullYear()} - Gestión de Eventos | Pagina creada por Felipe Medina
             </Typography>
         </Box>
     );

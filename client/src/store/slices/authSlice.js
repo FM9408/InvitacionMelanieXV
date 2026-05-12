@@ -2,17 +2,18 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
     user: null,
-    isAdmin: true,
+    isAdmin: false,
     loading: true,
     error: null
 }
 
-export const authSlice = createSlice({
+const authSlice = createSlice({
     name: 'auth',
     initialState,
     reducers: {
         setAdmin: (state, action) => {
             state.isAdmin = action.payload
+            
         }
     }
 })

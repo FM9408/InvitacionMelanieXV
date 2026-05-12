@@ -1,19 +1,22 @@
 import React from 'react'
 import { Typography, Box, Container } from '@mui/material'
 import { useTheme } from '@emotion/react'
+import { socket } from '../../hooks/ioSockets/socket'
 import {useSelector } from 'react-redux'
 import { CardMensaje } from '../../components/CardMensaje'
 
+
 const MessagesModule = () => {
     const theme = useTheme()
-
+    const { familias } = useSelector((state) => state.familias)
     const { mensajes, loadingMensajes } = useSelector((state) => state.mensajes)
     const [messages, setMessages] = React.useState([])
 
     React.useEffect(() => {
-        console.log('Mensajes actualizados:', mensajes)
-        setMessages(mensajes)
-    }, [mensajes])
+      if(messages.length !== mensajes.length){
+                    setMessages(mensajes)
+                   }
+    }, [mensajes,messages, familias])
 
     return (
         <Container sx={{ overflowY: 'clip', overflowX: 'auto' }}>

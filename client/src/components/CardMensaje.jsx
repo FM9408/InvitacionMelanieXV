@@ -1,11 +1,36 @@
-import React from "react"
-import { Box, Typography, IconButton } from "@mui/material"
+import React, { use } from "react"
+import { Box, Typography, IconButton, useTheme } from "@mui/material"
+import { socket } from "../hooks/ioSockets/socket"
+import { useDispatch, useSelector} from "react-redux"
+import { deleteMensaje, deleteMensajeofDB } from "../store/slices/mensajesSlice"
 import DeleteIcon from "@mui/icons-material/Delete"
+import * as Proptypes from "prop-types"
 
 
 
-export const CardMensaje = ({ m, theme }) => (
-    <Box
+
+export function CardMensaje ({ m}) {
+    const theme = useTheme()  
+    const {mensajes} = useSelector((state) => state.mensajes)
+    const dispatch = useDispatch()
+
+    async function deleteHandle  () {
+        try {
+            dispatch(deleteMensajeofDB(m.id))
+          
+           
+        } catch (error) {
+            console.error(error)
+
+        }
+    }
+    React.useEffect(() => {
+        
+    }, [])
+
+    return (
+        <Box
+            key={m.id}
     sx={{
         flex: "0 0 auto", // Evita que la tarjeta se encoja
         width: { xs: "280px", sm: "320px" }, // Tamaño perfecto para lectura
@@ -24,6 +49,7 @@ export const CardMensaje = ({ m, theme }) => (
             size='small'
             color='error'
             sx={{ position: 'absolute', top: 5, right: 5 }}
+            onClick={() =>deleteHandle()}
         >
             <DeleteIcon fontSize='small' />
         </IconButton>
@@ -76,4 +102,13 @@ export const CardMensaje = ({ m, theme }) => (
             </Typography>
         </Box>
     </Box>
-);
+   );
+};
+
+
+
+
+CardMensaje.Proptypes = {
+    m: Proptypes.object.isRequired,
+    theme: Proptypes.object.isRequired,
+};

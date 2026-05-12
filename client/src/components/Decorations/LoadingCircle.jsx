@@ -2,6 +2,7 @@ import React from 'react';
 import { CircularProgress, Box, useTheme, Paper } from '@mui/material';
 import { keyframes } from '@mui/system';
 import rose from '../../assets/images/rose.png';
+import { useSelector } from 'react-redux';
 
 const roseTransformation = keyframes`
   0% { transform: rotate(0deg) scale(0);}
@@ -13,7 +14,11 @@ const roseTransformation = keyframes`
   }
 `;
 
-function GradientCircularProgress({ progress, theme }) {
+function GradientCircularProgress ({ progress, theme }) {
+    
+   
+
+
     return (
         <React.Fragment>
             <svg width={0} height={0}>
@@ -71,6 +76,7 @@ function GradientCircularProgress({ progress, theme }) {
 
 export const LoadingCircle = ({ setProgress, progress }) => {
     const theme = useTheme();
+ 
 
     React.useEffect(() => {
         const timer = setInterval(() => {
@@ -125,7 +131,8 @@ export const LoadingCircle = ({ setProgress, progress }) => {
     );
 };
 
-export function NotregulableLoadingCircle() {
+export function NotregulableLoadingCircle () {
+     const { images } = useSelector((state) => state.images);   
     return (
         <Paper
             sx={{

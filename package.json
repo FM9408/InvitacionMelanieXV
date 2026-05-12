@@ -25,6 +25,7 @@
     "docker:build-api": "cd api && docker build -t invitacionmelaniexvapi . && cd ..",
     "dockerRun:api": "cd api && docker run -d --rm --name invitacionmelaniexvapi -p 8080:8080 --env-file .env invitacionmelaniexvapi && cd ..",
     "dockerApi:BuildAndRun": "npm run docker:build-api && npm run dockerRun:api",
+    "deploy": "cd ./api && start npm run deploy && cd .. && cd ./client && start npm run deploy && cd ..",
     "docker:compose:up": "docker compose up -d --build"
   }
 }
