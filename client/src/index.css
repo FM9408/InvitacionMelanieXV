@@ -1,0 +1,48 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+font-size: medium;
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+
+@font-face {
+    font-family: 'Imperial Script';
+    src: url('./assets/fonts/imperialscript-regular.woff2') format('woff2'),
+         url('./assets/fonts/imperialscript-regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+@font-face {
+  font-family: "Luxurious Script" ;
+  src: url("./assets/fonts/luxuriousscript-regular.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Tangerine Regular';
+  src: url("./assets/fonts/tangerine-regular.woff2") format("woff2");
+  
+  
+  
+}
+
+@font-face {
+  font-family: 'Tangerine Bold';
+  src: url("./assets/fonts/tangerine-bold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Cinzel";
+  src: url('./assets//fonts//Cinzel-VariableFont_wght.woff2') format('woff2');
+}
