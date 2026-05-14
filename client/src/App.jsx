@@ -1,34 +1,38 @@
-import React, { use, useEffect, useMemo, useState } from 'react';
+import React, {  useEffect, useMemo, useState } from 'react';
 import AppRouter from './routes/AppRouter';
 import { onAuthStateChanged } from 'firebase/auth';
 import { getimages } from './config/firebase/storage';
 import { auth } from './config/firebase/auth';
 import { socket } from './hooks/ioSockets/socket';
 import UserContext from './hooks/Contexts/UserContext';
-import { useTheme, Box } from '@mui/material';
+import { useTheme } from '@mui/material';
+import Box from '@mui/material/Box';
 import { setImages } from './store/slices/imagesSlice';
 import { setMensajes, fetchMensajes, setMessagesNotifications } from './store/slices/mensajesSlice.jsx';
 import { fetchInvitados } from './store/slices/adminSlice';
 import { setFamilias } from './store/slices/familiesSlice.js';
 import { useSelector, useDispatch } from 'react-redux';
-import { setAdmin } from './store/slices/authSlice';
+import { setAdmin, setUser } from './store/slices/authSlice';
 import { ThemeContext } from '@emotion/react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import {useNavigate, useLocation } from 'react-router-dom';
 import './App.css';
 import { setConfirmationNotifications } from './store/slices/invitationSlice.js';
 
+
+
+
 function App() {
-    const { mensajes, loadingMensajes, notificatons } = useSelector(
+    const { mensajes,   } = useSelector(
         (state) => state.mensajes
     );
-    const { confirmationNotifications } = useSelector((state) => state.invitado);
-    const {invitados} = useSelector((state) => state.admin)
+   
+    const { invitados } = useSelector((state) => state.admin)
+    const {user, isAdmin} = useSelector((state) => state.auth)
     const { familias } = useSelector((state) => state.familias);
     const theme = useTheme();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
-   
     const [background, setBackground] = useState('');
     const [currentUser, setCurrentUser] = useState(null);
     const [isAuthChecking, setIsAuthChecking] = useState(true);
@@ -66,6 +70,10 @@ function App() {
         socket.on('newFamilyCreated', (data) => {
             dispatch(setFamilias([...familias, data]));
         });
+        socket.on("newMesaAsignada", (data) => {
+            console.log(data)
+        });
+        
         socket.on('newConfirmation', (invitado) => {
             const familiaFind = familias.find(familia => familia.id === invitado.familiaId);
             const familiasStored = familias.filter(familia => familia.id !== invitado.familiaId);
@@ -82,34 +90,49 @@ function App() {
         });
     },[dispatch, familias, mensajes,])
     // 1. CONTROL DE PERSISTENCIA REAL
+
+
+   
+
+
     useEffect(() => {
+        const storedUser = globalThis.localStorage.getItem('user');
+        const parsedUser = JSON.parse(storedUser);
+        
+       
+    
         // Al montar, verificamos si hay un usuario en sesión activa
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
+        const unsubscribe = onAuthStateChanged(auth, (userAuth) => {
+            if (userAuth) {
                 
                 dispatch(setAdmin(true));
-                setCurrentUser(user);
-                navigate('/admin/dashboard');
-            } else {
+               
+               
+                if (globalThis.location.pathname === "/") {
+                    navigate('/admin/dashboard');
+                }
+            } else if (parsedUser.id) {
                 
                 dispatch(setAdmin(false));
-                setCurrentUser(null);
-                
-                // Si intenta entrar a admin sin sesión, lo sacamos
-                if (location.pathname.startsWith('/admin')) {
-                    navigate('/');
-                }
+                dispatch(setUser(storedUser));
+               navigate
             }
+                
+            else if (!userAuth || !user.id && !parsedUser.id && !isAdmin && location.pathname.startsWith("/admin")) { 
+                navigate("/")
+            } 
+
+
             setIsAuthChecking(false); // Ya terminamos de verificar
         });
-        
+       
         return () => unsubscribe();
-    }, [dispatch, location.pathname]);
+    }, [dispatch, isAdmin, navigate, user.id, location.pathname]);
     
     // 2. CARGA DE DATA E IMÁGENES
     useEffect(() => {
         
-        
+    
         const loadAssets = async () => {
             try {
                 const imagesObject = await getimages();
@@ -129,10 +152,11 @@ function App() {
     }, [familias, mensajes, invitados, dispatch])
     
     useEffect(() => {
+        
         if (familias.length !== invitados.length) {
             dispatch(setFamilias(invitados));
         }
-    },[familias, invitados, dispatch])
+    },[familias, invitados, dispatch,])
 
     const boxStyles = useMemo(
         () => ({
@@ -159,7 +183,7 @@ function App() {
     if (isAuthChecking) return null;
 
     return (
-        <UserContext.Provider value={currentUser}>
+        <UserContext.Provider value={user.user}>
             <ThemeContext.Provider value={theme}>
                 <Box sx={boxStyles}>
                     <AppRouter />

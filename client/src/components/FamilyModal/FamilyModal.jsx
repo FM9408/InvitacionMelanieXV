@@ -141,14 +141,14 @@ const FamilyModal = ({
             }}
             fullWidth
             maxWidth='sm'
-            sx={{ backdropFilter: 'blur(10px)' }}
+            sx={{ backdropFilter: 'blur(10px)', width:"100%" }}
         >
             <DialogTitle
                 sx={{ width: '100%', textAlign: 'center', overflow: 'clip' }}
             >
                 {mode === 'Añadir' && 'Registrar Nueva Familia'}
                 {mode === 'Editar' && (
-                    <Container
+                    <Box
                         sx={{ mb: -5, width: '100%', textAlign: 'center' }}
                     >
                         <Typography
@@ -161,7 +161,7 @@ const FamilyModal = ({
                         >
                             Editar Familia
                         </Typography>
-                    </Container>
+                    </Box>
                 )}
                 {mode === 'Confirmar' && (
                     <Container
@@ -203,6 +203,7 @@ const FamilyModal = ({
                             sx={{
                                 textShadow: `1px -1px 0 ${theme.palette.secondary.main}}`,
                                 color: `${theme.palette.primary.main}`,
+                                width:"100%"
                             }}
                         >
                             Por favor introduce tu apellido o tu nombre

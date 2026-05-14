@@ -6,10 +6,10 @@ import AdminLayout from '../layouts/AdminLayout';
 import NotFound from '../pages/404';
 import { InvitacionNarrativa } from '../components/invitation/narrativeComponent';
 import Homepage from '../pages/Homepage';
-import AsignaciondeMesas from '../pages/AsignaciónDeMesa';
+import {SeatingChart, TableAssignment} from '../pages/AsignaciónDeMesa';
 import GuestDashboard from '../pages/UserDashBoards';
 import InMemoriam from '../pages/inMemoriam';
-import { Paper, Typography } from '@mui/material';
+
 
 const AppRouter = () => {
     return (
@@ -27,16 +27,16 @@ const AppRouter = () => {
                     element={<GuestDashboard />}
                 />
             </Route>
-            <Route path='/inMemoriam' element={<InMemoriam />} />
             <Route path='/admin' element={<ProtectedRoute />}>
                 <Route path='' element={<Navigate to='dashboard' />} />
                 <Route path='' element={<AdminLayout />}>
-            <Route path='dashboard' element={<Dashboard />} />
-                    <Route path='mesas' element={<AsignaciondeMesas />} />
-                    <Route path='inMemoriam' element={<InMemoriam />} />
+                    <Route path='dashboard' element={<Dashboard />} />
+                    <Route path='mesas' element={<SeatingChart />} />
+                    <Route path='/admin/asignar-mesa/:id' element={<TableAssignment />} />
                 </Route>
             </Route>
 
+                    <Route path='/inMemoriam' element={<InMemoriam />} />
             <Route path='*' element={<Navigate to='/404' replace={false} />} />
             <Route path='/404' element={<NotFound />} />
         </Routes>

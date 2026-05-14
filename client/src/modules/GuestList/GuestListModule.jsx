@@ -1,4 +1,4 @@
-import React, { useState,  useContext } from 'react';
+import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
     Table,
@@ -21,15 +21,17 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 // Contexto y Slices
 import { LoadingCircle } from '../../components/Decorations/LoadingCircle';
-import { deleteFamilia,deleteFamiliaLocal} from '../../store/slices/adminSlice';
+import {
+    deleteFamilia,
+    deleteFamiliaLocal,
+} from '../../store/slices/adminSlice';
 import FamilyModal from '../../components/FamilyModal/FamilyModal';
 
 const GuestListModule = () => {
     const dispatch = useDispatch();
-  
 
     // Selectores de Redux
-    const { invitados} = useSelector((state) => state.admin);
+    const { invitados } = useSelector((state) => state.admin);
 
     // Estados locales
     const [progress, setProgress] = useState(0);
@@ -42,14 +44,14 @@ const GuestListModule = () => {
         if (invitados.length > 0) {
             setLoadingInfo(false);
             return;
-         }
-        
+        }
+
         // Solo si está vacío, esperamos
         const timer = setTimeout(() => setLoadingInfo(false), 2000);
-        return () => {   
+        return () => {
             clearTimeout(timer);
-        }
-    }, [invitados, loadingInfo, setLoadingInfo ]); // NO dependas de 'progress' aquí
+        };
+    }, [invitados, loadingInfo, setLoadingInfo]); // NO dependas de 'progress' aquí
 
     // --- Manejadores de Acciones ---
     const handleEdit = (familia) => {
@@ -130,7 +132,7 @@ const GuestListModule = () => {
                                     <TableCell
                                         sx={{
                                             fontWeight: 500,
-                                            fontSize: '1.7rem',
+                                            fontSize: '2.4rem',
                                             maxWidth: `${100 / 4}%`,
                                         }}
                                     >
@@ -139,7 +141,10 @@ const GuestListModule = () => {
                                     <TableCell align='center'>
                                         {guest.pases}
                                     </TableCell>
-                                    <TableCell align='center' sx={{maxWidth: `${100 / 4}%`}}>
+                                    <TableCell
+                                        align='center'
+                                        sx={{ maxWidth: `${100 / 4}%` }}
+                                    >
                                         <Chip
                                             label={
                                                 guest.hasViewed ? 'Vista' : (
@@ -156,14 +161,21 @@ const GuestListModule = () => {
                                             sx={{ fontSize: '1.3rem' }}
                                         />
                                     </TableCell>
-                                    <TableCell align='center'>
+                                    <TableCell
+                                        align='center'
+                                        sx={{ maxWidth: `${100 / 4}%` }}
+                                    >
                                         <Grid
                                             container
                                             spacing={0.5}
                                             justifyContent='center'
                                         >
                                             {guest.miembros.map((member) => (
-                                                <Grid item key={member.id} sx={{maxWidth: `${100 / invitados.length}%`}}>
+                                                <Grid
+                                                    item
+                                                    key={member.id}
+                                                    sx={{ maxWidth: '100%' }}
+                                                >
                                                     <Tooltip
                                                         title={`${member.nombre}: ${member.willAssist}`}
                                                     >
@@ -185,7 +197,10 @@ const GuestListModule = () => {
                                             ))}
                                         </Grid>
                                     </TableCell>
-                                    <TableCell align='right' sx={{maxWidth: `${100 / 4}%`}}>
+                                    <TableCell
+                                        align='right'
+                                        sx={{ maxWidth: `${100 / 4}%` }}
+                                    >
                                         <Box
                                             sx={{
                                                 display: 'flex',

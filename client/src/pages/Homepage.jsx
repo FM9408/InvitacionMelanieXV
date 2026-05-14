@@ -1,7 +1,9 @@
-import { Container, Box } from '@mui/material'
+import Box from '@mui/material/Box'
+import Container from '@mui/material/Container'
 import { useNavigate } from 'react-router-dom'
 import React from 'react'
 import Fuse from 'fuse.js'
+import { setUser } from '../store/slices/authSlice'
 import { setInvitationViewed } from '../hooks/database'
 import { setInvitado } from '../store/slices/invitationSlice'
 import FamilyModal from '../components/FamilyModal/FamilyModal'
@@ -45,10 +47,17 @@ export default function Homepage() {
             // Tomamos el primer resultado (el más cercano)
             const familiaEncontrada = results[0].item
             dispatch(setInvitado(familiaEncontrada))
-            setInvitationViewed(familiaEncontrada.id)
-            globalThis.localStorage.setItem("visited", true)
-            globalThis.localStorage.setItem("user", JSON.stringify(familiaEncontrada))
-            navigate(`/user/${familiaEncontrada.id}`)
+            globalThis.localStorage.setItem("visited", true);
+            globalThis.localStorage.setItem("user", JSON.stringify(familiaEncontrada));
+            dispatch(setUser(familiaEncontrada))
+            if (familiaEncontrada.hasViewed === false) {
+                setInvitationViewed(familiaEncontrada.id);
+                 navigate(`/user/${familiaEncontrada.id}`);
+            } else {
+                navigate(`/user/${familiaEncontrada.id}/dashboard`);
+            }
+
+             
         } else if (results.length > 1) {
             
 

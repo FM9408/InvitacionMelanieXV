@@ -1,4 +1,7 @@
-import { Box, Button, Container } from '@mui/material'
+import Box from '@mui/material/Box';
+import React from 'react';
+import Container from '@mui/material/Container';
+import Button from '@mui/material/Button';
 import { Link } from 'react-router-dom'
 
 const NotFound = () => {

@@ -19,9 +19,36 @@ import {
     Notifications,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { auth } from '../config/firebase/auth';
 import { socket } from '../hooks/ioSockets/socket';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
+
+const buttonsArray = [
+    {
+        name: 'Dashboard',
+        href: '/admin/dashboard',
+        icon: <Dashboard sx={{ fontSize: '1.5rem', mr: -2 }} />,
+    },
+    {
+        name: 'Mesas',
+        href: '/admin/mesas',
+        icon: <Restaurant sx={{ fontSize: '1.5rem', mr: -2 }} />,
+    },
+    {
+        name: 'Memorial',
+        href: '/inMemoriam',
+        icon: <Church sx={{ fontSize: '1.5rem', mr: -2 }} />,
+    },
+    {
+        name: 'Salir',
+        href: '/',
+        onClick: () => {
+            auth.signOut();
+        },
+        icon: <Logout sx={{ fontSize: '1.5rem', mr: -2 }} />,
+    },
+];
 
 const ButtonAnimation = ({ children }) => {
     const [timer, setTimer] = React.useState(2000);
@@ -48,6 +75,7 @@ const ButtonAnimation = ({ children }) => {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
+                width: `${100 / buttonsArray.length}%`,
             }}
         >
             <motion.div
@@ -86,29 +114,6 @@ const ButtonAnimation = ({ children }) => {
     );
 };
 
-const buttonsArray = [
-    {
-        name: 'Dashboard',
-        href: '/admin/dashboard',
-        icon: <Dashboard sx={{ fontSize: '1.5rem', mr: -2 }} />,
-    },
-    {
-        name: 'Mesas',
-        href: '/admin/mesas',
-        icon: <Restaurant sx={{ fontSize: '1.5rem', mr: -2 }} />,
-    },
-    {
-        name: 'Memorial',
-        href: '/inMemoriam',
-        icon: <Church sx={{ fontSize: '1.5rem', mr: -2 }} />,
-    },
-    {
-        name: 'Salir',
-        href: '/',
-        icon: <Logout sx={{ fontSize: '1.5rem', mr: -2 }} />,
-    },
-];
-
 const AppBarButtons = () => {
     const theme = useTheme();
     const navigate = useNavigate();
@@ -135,7 +140,11 @@ const AppBarButtons = () => {
                     >
                         <Grid
                             item
-                            sx={{ display: 'flex', alignItems: 'center' }}
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                width: `${100 / buttonsArray.length}%`,
+                            }}
                         >
                             {isLocation === button.name.toLocaleLowerCase() ?
                                 <ButtonAnimation>{button.icon}</ButtonAnimation>
@@ -147,7 +156,11 @@ const AppBarButtons = () => {
                         >
                             <Button
                                 key={button.name}
-                                onClick={() => navigate(button.href)}
+                                onClick={
+                                    button.onClick ?
+                                        () => button.onClick()
+                                    :   () => navigate(button.href)
+                                }
                                 variant='text'
                                 color={theme.palette.secondary.main}
                             >
@@ -171,7 +184,6 @@ export default function Appbar() {
     const [anchorEl, setAnchorEl] = React.useState(null);
     const notificationsRef = React.useRef(null);
 
-
     function handlePopoverOpen(event) {
         setAnchorEl(event.currentTarget);
         setOnHover(true);
@@ -180,24 +192,24 @@ export default function Appbar() {
         setAnchorEl(null);
         setOnHover(false);
     }
-    
+
     const notificationsArray = React.useMemo(() => {
         return notifications.concat(confirmationNotifications);
     }, [notifications, confirmationNotifications]);
 
     React.useEffect(() => {
-        socket.on('newMensajeCreado', (data) => {
+        socket.on('newMensajeCreado', () => {
             setOnHover(true);
             handlePopoverOpen({ currentTarget: notificationsRef.current });
-           setTimeout(() => handlePopoverClose(), 3000)
+            setTimeout(() => handlePopoverClose(), 3000);
         });
         return () => {
             socket.off('newMensajeCreado');
-        }
+        };
     }, [notifications, confirmationNotifications, notificationsArray]);
 
     return (
-        <AppBar variant='admin'>
+        <AppBar variant='admin' sx={{ width: '100%' }}>
             <Toolbar sx={{ width: '100%' }}>
                 <AppBarButtons />
                 <Box
@@ -207,6 +219,7 @@ export default function Appbar() {
                         position: 'absolute',
                         top: 1,
                         right: 1,
+                        width: `${100 / buttonsArray.length}%`,
                     }}
                 >
                     <IconButton

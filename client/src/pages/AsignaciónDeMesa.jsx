@@ -1,108 +1,313 @@
-import React from "react";
-import { Paper, Typography, Box, Grid, IconButton } from "@mui/material";
-import { useTheme } from "@emotion/react";
-import { useSelector } from "react-redux";
-import {PersonAdd}from "@mui/icons-material";
+import React, { useMemo, useEffect, useCallback } from 'react';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import MesaCirculo from '../components/mesacirculo';
+import MesasDrawer from '../components/measaDrawer';
 
-function Mesa ({ numero, invitados }) {
-    const [numeroDeMesa, setNumeroDeMesa] = React.useState(numero);
-    const [invitadosEnMesa, setInvitadosEnMesa] = React.useState(invitados);
-    const [hovered, setHovered] = React.useState(false);
-    function onHoverHandle () {
-        if(invitadosEnMesa.length >= 10) return; // Ejemplo: no permitir agregar más invitados si ya hay 10
-        setHovered(true)
-    }
-    function onLeaveHandle () {
-        setHovered(false)
-    }
+// Importa tus acciones
+import {
+    setSinMesas,
+    setMesasData,
+} from '../store/slices/mesasSlice';
+import { updateMiembroMesa, assignarMesas } from '../store/slices/familiesSlice';
+import Button from '@mui/material/Button';
+import Alert from '@mui/material/Alert';
 
-    React.useEffect(() => {
-        setNumeroDeMesa(numero);
-        setInvitadosEnMesa(invitados);
+/**
+ * VISTA 1: Plano General
+ * Optimizada para evitar cálculos redundantes
+ */
+export const SeatingChart = () => {
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { familias } = useSelector((state) => state.familias);
+    const { mesasData } = useSelector((state) => state.mesas);
+
+    // Memorizamos el mapeo para que solo se calcule SI cambian las familias
+    useMemo(() => {
        
-    }, [numero, invitados]);
+        // Procesamiento en un solo ciclo (O(n))
+        dispatch(setMesasData(familias));
+        
+           
+    }, [familias, dispatch]);
+
+    // Sincronización atómica
+    useEffect(() => {
+        
+        
+    }, [dispatch, mesasData]);
 
     return (
-        <Paper onMouseLeave={() =>onLeaveHandle()} onMouseEnter={() =>onHoverHandle()} sx={{ p: 2, m: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', borderRadius:"50%", width: '100%', height: '200px', justifyContent: 'center' }}>
-            {
-                hovered ? (
-                   <IconButton> <PersonAdd  sx={{ fontSize: '2rem', color: 'primary.main', cursor: 'pointer' }} /></IconButton>) : <Box sx={{  }}>
-                         <Typography variant="h4">Mesa {numeroDeMesa}</Typography>
-            <Typography variant="caption" sx={{width:"100%"}}>Invitados asignados:</Typography>
-            {
-                invitadosEnMesa.length > 0 ? (
-                    <Typography variant="caption">Hay {invitadosEnMesa.length}/10 invitados en esta mesa:</Typography>
-                            ) : invitadosEnMesa.length === 10 ? (
-                        <Typography variant="caption">Esta mesa esta llena</Typography>
-                ):(
-                    <Typography variant="caption">No hay invitados asignados en esta mesa.</Typography>
-                )
-            }
+        <Box sx={{ p: 4, bgcolor: '#f5f5f5', minHeight: '100vh' }}>
+            <Typography
+                variant='h4'
+                align='center'
+                sx={{ fontFamily: 'serif', mb: 6, color: '#1a1a1a' }}
+            >
+                Plano de Asignación
+            </Typography>
+
+            <Grid
+                container
+                spacing={3}
+                justifyContent='center'
+                alignItems='center'
+                direction={'column'}
+            >
+                <Grid item xs={12} lg={4}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 2,
+                            justifyContent: 'center',
+                        }}
+                    >
+                        {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                            <MesaCirculo
+                                key={n}
+                                numero={n}
+                                count={mesasData[n]?.length || 0}
+                                navigate={navigate}
+                            />
+                        ))}
                     </Box>
-           }
-        </Paper>
-    )
-}
+                </Grid>
 
-function AsignaciondeMesas () {
-    const { invitados } = useSelector((state) => state.admin)
-    const [mesas1, setMesas1] = React.useState(new Array(6).fill().map((_, i) => ({ numero: i + 1, invitados: [] })))
-    const [mesas2, setMesas2] = React.useState(new Array(6).fill().map((_, i) => ({ numero: i + 7, invitados: [] })))
+                <Grid item xs={12} lg={4}>
+                    <Paper
+                        variant='outlined'
+                        sx={{
+                            height: 300,
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            border: '2px dashed #D4AF37',
+                            bgcolor: 'rgba(212, 175, 55, 0.05)',
+                            borderRadius: 4,
+                        }}
+                    >
+                        <Typography
+                            variant='h6'
+                            sx={{ color: '#D4AF37', letterSpacing: 5 }}
+                        >
+                            PISTA
+                        </Typography>
+                    </Paper>
+                </Grid>
 
-    React.useEffect(() => { 
-       return () => { invitados.forEach((familia) => {
-            familia.miembros.forEach((miembro) => {
-                if (miembro.willAssist === "Confirmado") {
-                    if (miembro.mesa <= 6) {
-                       setMesas1((prevMesas) => {
-                            const updatedMesas = [...prevMesas];
-                            updatedMesas[miembro.mesa - 1].invitados.push(miembro);
-                            return updatedMesas;
-                       });
-                       
-                    } else if (miembro.mesa <= 12) {
-                        setMesas2((prevMesas) => {
-                            const updatedMesas = [...prevMesas];
-                            updatedMesas[miembro.mesa - 7].invitados.push(miembro);
-                            return updatedMesas;
-                        });
-                    }
+                <Grid item xs={12} lg={4}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 2,
+                            justifyContent: 'center',
+                        }}
+                    >
+                        {[8, 9, 10, 11, 12, 13, 14, 15].map((n) => (
+                            <MesaCirculo
+                                key={n}
+                                numero={n}
+                                count={mesasData[n]?.length || 0}
+                                navigate={navigate}
+                            />
+                        ))}
+                    </Box>
+                </Grid>
+                <Grid item xs={12} lg={4}>
+                    <Grid
+                        container
+                        spacing={2}
+                        justifyContent='center'
+                        alignItems='center'
+                    >
+                        <Grid item>
+                            <Button onClick={() => dispatch(assignarMesas(familias))} variant='contained'>Guardar cambios</Button>
+                        </Grid>
+                        <Grid item>
+                            <Button
+                                variant='contained'
+                                onClick={() => navigate(-1)}
+                            >
+                                Descartar Cambios
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Box>
+    );
+};
+
+/**
+ * VISTA 2: Asignación Individual
+ * Con Draggable optimizado
+ */
+export const TableAssignment = () => {
+    const { id } = useParams();
+    const dispatch = useDispatch();
+    const mesaId = Number(id);
+    const [llena, setllena] = React.useState(false);
+    const { familias } = useSelector((state) => state.familias);
+    const { sinMesa, mesasData } = useSelector((state) => state.mesas);
+    const invitadosEnMesa = useMemo(
+        () => mesasData[mesaId] || [],
+        [mesasData, mesaId]
+    );
+
+    const onDrop = useCallback(
+        (e, destinoMesa) => {
+            if (destinoMesa !== 0 &&invitadosEnMesa.length === 10) {
+                setllena(true);
+                setTimeout(() => {
+                    setllena(false);
+                }, 8000);
+                
+            } else {
+                e.preventDefault();
+                const invId = e.dataTransfer.getData('invitadoId');
+                if (invId) {
+                    dispatch(
+                        updateMiembroMesa({
+                            invitadoId: invId,
+                            nuevaMesa: destinoMesa,
+                        })
+                    );
+                   
                 }
-            })})
-        }
-    },[invitados])
+            }
+        },
+        [dispatch, invitadosEnMesa.length]
+    );
+    // Memorizamos el mapeo para que solo se calcule SI cambian las familias
+    useMemo(() => {
+       
+        // Procesamiento en un solo ciclo (O(n))
+        dispatch(setMesasData(familias));
+        
+           
+    }, [familias, dispatch]);
+
+    // Sincronización atómica
+    useEffect(() => {
+        
+        
+    }, [dispatch, mesasData]);
+
+    // Sincronización atómica
+    
 
     return (
-        
-          <Grid container  justifyContent="center" direction={"row"}>
-              <Grid Item sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center',  flexDirection:"column", width:`${100/3}%` }}>
-                 {
-                mesas1.map((mesa) => {
-                    return (
-                        <Mesa key={mesa.numero} numero={mesa.numero} invitados={mesa.invitados} />
-                    )
-                })
-            }
-           </Grid>
-            <Grid Item sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width:`${100/3}%`, }}>
-                <svg width="100%" height="100%">
-                    <rect x="10" y="10" width="100%" height="100%" fill="#ccc" stroke="#333" strokeWidth="2" />
-                </svg>
-                </Grid>
-                 <Grid Item sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center',   flexDirection:"column", width:`${100/3}%` }}>
-                 {
-                mesas2.map((mesa) => {
-                    return (
-                        <Mesa key={mesa.numero} numero={mesa.numero} invitados={mesa.invitados} />
-                    )
-                })
-            }
-           </Grid>
-          </Grid>
-        
+        <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+            <Alert
+                severity='error'
+
+                variant='filled'
+                sx={{
+                    position: 'absolute',
+                    top: llena ? 0 : '-100%',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: `${llena ?  10 : 0}%`,
+                    width: '100%',
+                    zIndex: 9999,
+                    transition: 'all 1s linear',
+                }}>
+                    ¡Esta mesa está llena!
+                </Alert>
+            <MesasDrawer onDrop={onDrop} sinMesa={sinMesa} mesaId={mesaId} />
+
+            <Box
+                sx={{
+                    flexGrow: 1,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    bgcolor: '#f0f0f0',
+                    width: '65%',
+                }}
+            >
+                <Box
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => onDrop(e, mesaId, 0)}
+                    sx={{
+                        position: 'relative',
+                        width: 450,
+                        height: 450,
+                        borderRadius: '50%',
+                        border: '10px solid #D4AF37',
+                        bgcolor: 'white',
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <Typography
+                        variant='h2'
+                        sx={{
+                            color: '#D4AF37',
+                            opacity: 0.3,
+                            fontWeight: 'bold',
+                        }}
+                    >
+                        {id}
+                    </Typography>
+                    <Typography
+                        variant='body2'
+                        sx={{ color: 'text.secondary' }}
+                    >
+                        Arrastra aquí
+                    </Typography>
+
+                    {invitadosEnMesa.map((inv, index) => {
+                        const angle =
+                            (index / invitadosEnMesa.length) * (2 * Math.PI);
+                        const radius = 260;
+                        const x = Math.cos(angle) * radius;
+                        const y = Math.sin(angle) * radius;
+
+                        return (
+                            <Box
+                                key={inv.id}
+                                draggable
+                                onDragStart={(e) =>
+                                    e.dataTransfer.setData('invitadoId', inv.id)
+                                }
+                                sx={{
+                                    position: 'absolute',
+                                    transform: `translate(${x}px, ${y}px)`,
+                                    width: 80,
+                                    height: 80,
+                                    borderRadius: '50%',
+                                    bgcolor: 'secondary.dark',
+                                    color: 'white',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    textAlign: 'center',
+                                    fontSize: '1.75rem',
+                                    boxShadow: 4,
+                                    cursor: 'grab',
+                                    zIndex: 10,
+                                    p: 1,
+                                    border: '2px solid white',
+                                }}
+                            >
+                                {inv.nombre.split(' ')[0]}
+                            </Box>
+                        );
+                    })}
+                </Box>
+            </Box>
+        </Box>
     );
-}
- 
-
-
-export default AsignaciondeMesas
+};

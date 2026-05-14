@@ -1,8 +1,12 @@
 import React from 'react';
-import { Box, Typography, Grid, Container, useTheme, IconButton } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import { useTheme } from '@mui/material/styles';
+import IconButton from '@mui/material/IconButton';
 import { motion } from 'framer-motion';
-import {ArrowBack as Backspace} from "@mui/icons-material"
+import { ArrowBack as Backspace } from "@mui/icons-material"
+import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 const FotoTributo = ({ src, delay }) => (
@@ -33,17 +37,25 @@ const FotoTributo = ({ src, delay }) => (
 );
 
 const InMemoriam = () => {
+    const { datos } = useSelector((state) => state.invitado);
     const theme = useTheme();
+    const { images } = useSelector((state) => state.images);
+    const user = globalThis.localStorage.getItem('user');
+    const parsedUser = JSON.parse(user);
     const navigate = useNavigate();
-   
-    const {images} = useSelector((state) => state.images);
+    const music = React.useRef(new Audio(images.corazonDeNino))
     
-
-   
-
     React.useEffect(() => {
-       
-    },[images])
+        music.current.loop = true
+        music.current.currentTime = 0
+        music.current.preload = true
+        music.current.pause()
+    
+        setTimeout(() => {
+            music.current.play()
+        }, 2000)
+        
+    },[images, datos])
     return (
         <Container maxWidth="lg" sx={{ py: 12, color:theme.palette.common.white, textAlign: 'center', width:"100%",  height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', backgroundImage: `url(${images.inMemoriam})`, backgroundSize: 'cover', backgroundPosition: 'center', position:"relative" }}>
             <motion.div
@@ -51,7 +63,11 @@ const InMemoriam = () => {
                 whileInView={{ opacity: 1 }}
                 transition={{ duration: 1.5 }}
             >
-                <IconButton onClick={() => navigate("/")} sx={{position : "absolute", top: 20, left: 20, color: theme.palette.common.white}} href="/">
+                <IconButton onClick={() => {
+                    music.current.pause();
+                    music.current.currentTime = 0;
+                    navigate(`/user/${parsedUser.id}/dashboard`);
+                }} sx={{ position: "absolute", top: 20, left: 20, color: theme.palette.common.white }} href="/">
                     <Backspace />
                 </IconButton>
                 {/* --- EFECTO LLAMA DE VELA (Recuperado) --- */}

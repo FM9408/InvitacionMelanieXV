@@ -21,30 +21,63 @@ export const AddaFamily = createAsyncThunk(
     }
 )
 
+export const assignarMesas = createAsyncThunk(
+    'familias/assignarMesas',
+    async (familias) => {
+        const response = await axios.put(
+            `${axios.defaults.baseURL}/api/invitados/asignarMesa`,
+            { familias }
+        )
+        return response.data    
+    }
+)
+
 
 const familiesSlice = createSlice({
     name: 'familias',
     initialState,
-    reducers: { 
+    reducers: {
         setFamilias: (state, action) => {
-            state.familias = action.payload
-        }
+            state.familias = action.payload;
+        },
+        updateMiembroMesa: (state, action) => {
+            const { invitadoId, nuevaMesa } = action.payload;
+            console.log(action.payload)
+            state.familias.forEach((familia) => {
+                const miembro = familia.miembros.find(
+                    (m) => m.id === invitadoId
+                );
+                if (miembro) {
+                    miembro.mesa = nuevaMesa;
+                }
+            });
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(AddaFamily.pending, (state) => {
-            state.loading = true
-        })
+            state.loading = true;
+        });
         builder.addCase(AddaFamily.fulfilled, (state, action) => {
-            state.loading = false
-            state.familias = state.familias.concat(action.payload)
-        })
+            state.loading = false;
+            state.familias = state.familias.concat(action.payload);
+        });
         builder.addCase(AddaFamily.rejected, (state, action) => {
-            state.loading = false
-            state.error = action.error.message
-        })
-    }
-})
+            state.loading = false;
+            state.error = action.error.message;
+        });
+        builder.addCase(assignarMesas.pending, (state) => {
+            state.loading = true;
+        });
+        builder.addCase(assignarMesas.fulfilled, (state) => {
+            state.loading = false;
+        });
+        builder.addCase(assignarMesas.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.error.message;
+        });
+    },
+});
 
-export const { setFamilias } = familiesSlice.actions
+export const { setFamilias, updateMiembroMesa } = familiesSlice.actions
 
 export default familiesSlice.reducer

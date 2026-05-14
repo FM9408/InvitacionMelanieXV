@@ -79,7 +79,7 @@ export const GuestManagement = ({ mode, totalGuests }) => {
         <>
             <Tooltip 
                 title={isLimitReached ? "Límite de invitados alcanzado" : `${mode} Familia`}
-                TransitionComponent={Zoom}
+                slots={{transition: Zoom}}
                 arrow
             >
                 <span> {/* Span necesario para mostrar tooltip en botones deshabilitados */}

@@ -7,7 +7,7 @@ import { palette } from './palette'
 import componentsOverrides from './overrides'
 import GlobalStyles from './globalStyles'
 import typography from './typography'
-import { CssBaseline } from '@mui/material'
+import CssBaseline  from '@mui/material/CssBaseline'
 import PropTypes from 'prop-types'
 import React from 'react'
 

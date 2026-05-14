@@ -46,13 +46,13 @@ const startServer = async () => {
         const isDev = NODE_ENV === 'development';
         await conn.sync({
             force: isDev,
-            alter: isDev,
+            alter: true,
             logging: false,
         });
-        console.log('✅ Base de datos sincronizada');
+        console.log('✅ Base de datos sincronizada')
 
         // 2. Configurar eventos de socket
-         setupSocketEvents();
+         setupSocketEvents()
 
         // 3. Iniciar escucha del servidor
         // Cloud Run requiere escuchar en 0.0.0.0

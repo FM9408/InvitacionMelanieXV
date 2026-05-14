@@ -169,24 +169,51 @@ async function setInvitationViewed (req, res) {
         res.status(500).json({ error: error.message })
     }
 }
-async function asignarMesa (req, res) { 
-    const {familiaId, mesa} = req.body
+
+
+async function asignacionDeMesas (req, res) {
+    const { familias } = req.body
+
     try {
-        await Familia.update({
-            mesa: mesa
-        }, {
-            where: {
-                id: familiaId
+        for (const familia of familias) {
+            const getFamilia = await Familia.findByPk(familia.id)
+            if (getFamilia) {
+                for (const miembro of familia.miembros) {
+                    const p = await conn.transaction()
+                    const getMiembro = await Invitado.findOne({
+                        where: {
+                            id: miembro.id
+                        },
+                        transaction: p
+                    })
+                    if (getMiembro) {
+                        await getMiembro.update({
+                            mesa: miembro.mesa
+                        })
+                    }
+                    await getMiembro.save()
+                    await p.commit()
+                }
             }
+        }
+        const getFamilias = await Familia.findAll({
+            include: {
+                all: true,
+                nested: true,
+            },
         });
+      
+        connectionEmitter.emit("mesaAsignada", getFamilias)
         res.status(200).json({
-            message: 'Mesa asignada'
-        })
-    } catch (error) {
+            message: 'Mesas asignadas'
+        });
+    }
+    catch (error) {
+        console.log(error)
         res.status(500).json({ error: error.message })
     }
-
+    
 }
 
 
-module.exports = { getAllFamiles, registrarFamilia, buscarFamilia, borrarFamilia, buscarPorCualquierMiembro, setConfirmation, setInvitationViewed, asignarMesa }
+module.exports = { getAllFamiles, registrarFamilia, buscarFamilia, borrarFamilia, buscarPorCualquierMiembro, setConfirmation, setInvitationViewed,asignacionDeMesas }

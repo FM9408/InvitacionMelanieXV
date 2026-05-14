@@ -1,11 +1,16 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, Typography, Container, Stack, Grid } from '@mui/material';
+import { Box, Typography, Container, Stack, Grid, useTheme } from '@mui/material';
 import { useScroll, useTransform, motion } from 'framer-motion';
+import { Video } from '@videojs/react/video';
+import { useNavigate } from 'react-router-dom';
+import { BackgroundVideoSkin, BackgroundVideo } from '@videojs/react/background';
 import FamilyModal from '../FamilyModal/FamilyModal';
 import PropTypes from 'prop-types';
 import YardIcon from '@mui/icons-material/Yard';
-
+import { Player } from '../../main';
 import { useSelector } from 'react-redux';
+
+
 // Importa este icono o tu SVG de rosa
 const frasesArray = [
     '¿Te lo vas a perder?',
@@ -114,11 +119,14 @@ MarcoDorado.propTypes = {
 };
 
 export const InvitacionNarrativa = () => {
-    const mainAudio = useRef(
-        new Audio('/assets/audio/After_the_Masquerade.mp3')
-    );
     const { images } = useSelector((state) => state.images);
+    const theme = useTheme();
+    const mainAudio = useRef(
+        new Audio(images.afterTheMascarade)
+    );
+   
     const [frase, setFrase] = useState('');
+    const navigate = useNavigate();
     const [introduccionFrase, setIntroduccionFrase] = useState('');
     let volume = useRef(0);
     const containerRef = useRef(null);
@@ -144,6 +152,7 @@ export const InvitacionNarrativa = () => {
 
     const startAudio = () => {
         mainAudio.current.currentTime = 0;
+       
         setTimeout(() => {
             mainAudio.current.play();
         }, 2000);
@@ -178,18 +187,17 @@ export const InvitacionNarrativa = () => {
     const photosRotateX = useTransform(scrollYProgress, [0, 0.35], [85, 20]);
     const photosZ = useTransform(scrollYProgress, [0.2, 0.35], [-400, 0]);
     const leftPhotoX = useTransform(scrollYProgress, [0.2, 0.35], [0, -100]);
-
     const rightPhotoX = useTransform(scrollYProgress, [0.2, 0.35], [0, 100]);
 
     // Abrir modal al final
     useEffect(() => {
         mainAudio.current.loop = false;
-
+      mainAudio.current.pause()
         globalThis.history.scrollRestoration = 'manual';
         window.scrollTo(0, 0);
         let requestID;
         const totalDurationMS = 50000; // 60 segundos
-       
+
         const startTime = performance.now();
         if (
             modalOpen === false &&
@@ -212,6 +220,13 @@ export const InvitacionNarrativa = () => {
 
             // FINAL DE LA ANIMACIÓN: Abrir modal forzosamente
             if (progress >= 1) {
+                const user = globalThis.localStorage.getItem('user');
+                const viewed = JSON.parse(user);
+               
+                
+                if (viewed.hasViewed === true) {
+                    navigate(`/user/${viewed.id}/dashboard`)
+                }
                 if (!hasOpened) {
                     setModalOpen(true);
                     setHasOpened(true);
@@ -361,16 +376,39 @@ export const InvitacionNarrativa = () => {
                     </Box>
                 </SectionWrapper>
                 {/*3. Texto "Ahora..." */}
-                <SectionWrapper progress={scrollYProgress} range={[0.4, 0.53]}>
-                    <Container>
-                        <Box sx={{ textAlign: 'center' }}>
-                            <TypografyItem
+                <SectionWrapper progress={scrollYProgress} range={[0.43, 0.5]}>
+                    <Player.Container>
+                        <Box
+                            sx={{
+                                textAlign: 'center',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                position: 'relative',
+                            }}
+                        >
+                           
+                            <BackgroundVideoSkin> 
+                                <BackgroundVideo onEnded={(e) => e.currentTarget.pause()} onLoad={(e) => {
+                                    e.currentTarget.pause();
+                                    e.currentTarget.playsInline = true;
+                                    e.currentTarget.currentTime = 0;
+                                    e.currentTarget.play();
+                                }} src={images.roseVideo} muted style={{width:"100%"}} />
+                           </BackgroundVideoSkin>
+                           
+                           
+
+                        </Box>
+                    </Player.Container>
+                </SectionWrapper>
+                <SectionWrapper progress={scrollYProgress} range={[0.48, 0.53]}>
+                     <Box   sx={{ position: "absolute", top:"30%" }}>
+                                  <TypografyItem
                                 progress={scrollYProgress}
-                                range={[0.4, 0.5]}
+                                range={[0.45, 0.53]}
                                 text='Ahora...'
                             />
-                        </Box>
-                    </Container>
+                            </Box>
                 </SectionWrapper>
 
                 {/* 4. CELEBRACIÓN */}
@@ -389,16 +427,29 @@ export const InvitacionNarrativa = () => {
                             zIndex: 0,
                         }}
                     >
+                                
+    
                         {/* --- CLAVE 1: Superposición para contraste --- */}
                         <Box
                             sx={{
                                 position: 'absolute',
                                 inset: 0,
-                                backgroundColor: 'rgba(0, 0, 0, 0.6)', // Oscurece el fondo un 60%
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)', // Oscurece el fondo un 60%
                                 zIndex: 1,
                             }}
                         />
-
+                                
+                        <Box sx={{ zIndex: 1, position: 'absolute', opacity: "100%", top: "10%", right: "10%", width: "100%", height: "10%", display: "flex", justifyContent: "center", alignItems: "center" }}>
+                            <Typography variant="invitationFont" sx={{   // Asegúrate de tenerla cargada en el index.html o Webfont
+                                        color: '#D4AF37', // Dorado para el título
+                                        mb: 8, // Más espacio debajo del título
+                                        fontWeight: 'bold',
+                                        textAlign: 'center',
+                                        textShadow: '0 4px 8px rgba(0,0,0,0.8)', 
+                                    }}>
+                                    Luz Melany
+                                </Typography>
+                        </Box>
                         {/* Contenedor de la Imagen de Melanie (izquierda) */}
                         <Box
                             sx={{
@@ -421,6 +472,7 @@ export const InvitacionNarrativa = () => {
                         <Box sx={{ flex: 1, pr: { md: 10 }, zIndex: 2 }}>
                             {' '}
                             {/* flex: 1 para ocupar espacio restante */}
+
                             <Typography
                                 variant='InvitationSecondaryText'
                                 sx={{
@@ -506,12 +558,9 @@ export const InvitacionNarrativa = () => {
                 </SectionWrapper>
             </Box>
 
-            <FamilyModal
-                open={modalOpen}
-                mode='Confirmar'
-                onClose={() => setModalOpen(false)}
-                setHasOpened={(e) => setHasOpened(e)}
-            />
+            {
+                
+            }
         </Box>
     );
 };
@@ -598,7 +647,7 @@ const ItemText = ({ text, progress, range }) => {
                     color: '#fff',
                     textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
                     fontWeight: 500,
-                    fontSize: { xs: '1.2rem', md: '1.8rem' },
+                    fontSize: { xs: '2.4rem', md: '3.6rem' },
                 }}
             >
                 {text}
@@ -640,18 +689,20 @@ MelanieImage.propTypes = {
 };
 
 const TypografyItem = ({ progress, range, text }) => {
-    const opacity = useTransform(progress, range, [0, 1]);
+    const opacity = useTransform(progress, range, ['0%', '100%']);
     const width = useTransform(progress, range, ['0', `${text.length}ch`]);
+    const x = useTransform(progress, range, ["0%","1%"])
 
     return (
-        <motion.div style={{ opacity }}>
+        <motion.div style={{ opacity, x, display:"flex", justifyContent:"center", width:"100%" }}>
             <Typography
                 variant='invitationFont'
                 sx={{
                     color: '#D4AF37',
                     fontWeight: 'bold', // Ancho basado en la longitud del texto
-
+                    backgroundColor:"transparent",
                     textAlign: 'center',
+                    
                 }}
             >
                 {text}

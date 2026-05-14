@@ -5,7 +5,7 @@ import { Box, TextField } from "@mui/material";
 
 
 function BuscarModeDashBoard ({ search, onError,setSearch, onClose, onSave}) { 
-    return ( <Box sx={{ mt: -2 }}>
+    return ( <Box sx={{ mt: -2, width: '100%', textAlign: 'center' }}>
                             <form
                                 onSubmit={(e) => {
                                     e.preventDefault();

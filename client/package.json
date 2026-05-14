@@ -9,7 +9,8 @@
         "build": "vite build",
         "lint": "eslint .",
         "preview": "vite preview",
-        "deploy": "npm run build && firebase deploy --only hosting"
+        "deploy": "npm run build && firebase deploy --only hosting",
+        "dev:noem": "start vite"
     },
     "dependencies": {
         "@emotion/react": "^11.14.0",
@@ -19,6 +20,7 @@
         "@reduxjs/toolkit": "^2.11.2",
         "@tsparticles/react": "^3.0.0",
         "@tsparticles/slim": "^3.9.1",
+        "@videojs/react": "^10.0.0-beta.23",
         "axios": "^1.15.0",
         "firebase": "^12.12.0",
         "framer-motion": "^12.38.0",
@@ -28,7 +30,8 @@
         "react-redux": "^9.2.0",
         "react-router-dom": "^7.13.1",
         "recharts": "^3.8.0",
-        "socket.io-client": "^4.8.3"
+        "socket.io-client": "^4.8.3",
+        "videojs": "^1.0.0"
     },
     "devDependencies": {
         "@eslint/js": "^9.39.1",

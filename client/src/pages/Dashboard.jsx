@@ -1,12 +1,15 @@
-import React, { useEffect, useMemo } from 'react';
-import { Grid, Paper, Typography, Box, useTheme, IconButton } from '@mui/material';
+import React, { useMemo, Suspense } from 'react';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import { useTheme } from '@mui/material';
 import { useSelector } from 'react-redux';
 
 // Módulos e Iconos
 import GuestListModule from '../modules/GuestList/GuestListModule';
 import { NotregulableLoadingCircle } from '../components/Decorations/LoadingCircle';
 import AnalyticsModule from '../modules/Analytics/AnalyticsModule' 
-import {Notifications} from '@mui/icons-material'
 import PeopleIcon from '@mui/icons-material/People';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EmailIcon from '@mui/icons-material/Email';
@@ -20,9 +23,6 @@ const Dashboard = () => {
     const { invitados } = useSelector((state) => state.admin);
     const { mensajes } = useSelector((state) => state.mensajes);
     const [loadingData, setLoadingData] = React.useState(true);
-    const [onHover, setOnHover] = React.useState(false);
-
-
     // 1. ELIMINACIÓN DE LA VIOLACIÓN (Cálculo en Memoria)
     // En lugar de useEffect + setState, usamos useMemo.
     // Esto calcula los valores DURANTE el renderizado de forma eficiente.
@@ -30,19 +30,20 @@ const Dashboard = () => {
         let confirmed = 0;
         let total = 0;
 
-        invitados.forEach((familia) => {
-            if (familia.miembros) {
-                familia.miembros.forEach((miembro) => {
-                    total++;
+        
+        for (const familia of invitados) {
+            if (familia.miembros) { 
+                for (const miembro of familia.miembros) {
                     if (miembro.willAssist === 'Confirmado') {
                         confirmed++;
                     }
-                });
+                    total++;
+                }
             }
-        });
+        }
 
         return { confirmed, total };
-    }, [invitados, mensajes]); // Solo se recalcula si la lista de invitados en Redux cambia.
+    }, [invitados]); // Solo se recalcula si la lista de invitados en Redux cambia.
 
     // 2. Control de carga (Simulado para estética)
     React.useEffect(() => {
@@ -51,7 +52,8 @@ const Dashboard = () => {
     }, [ loadingData]);
    
     return (
-        <Box sx={{ width: '100%' }}>
+        <Suspense fallback={<div>Cargando...</div>}>
+             <Box sx={{ width: '100%' }}>
           
             <Grid
                 container
@@ -208,6 +210,7 @@ const Dashboard = () => {
                 </Grid>
             </Grid>
         </Box>
+       </Suspense>
     );
 };
 

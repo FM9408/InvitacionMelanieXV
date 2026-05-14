@@ -5,6 +5,8 @@ import adminReducer from './slices/adminSlice.js'
 import familiaReducer from './slices/familiesSlice.js'
 import authReducer from './slices/authSlice.js'
 import imagesReducer from './slices/imagesSlice.js'
+import mesasReducer from './slices/mesasSlice.js'
+
 
 
 export const store = configureStore({
@@ -14,6 +16,7 @@ export const store = configureStore({
         admin: adminReducer,
         mensajes: mensajesReducer,
         images: imagesReducer,
-        familias: familiaReducer
+        familias: familiaReducer,
+        mesas: mesasReducer
     }
 })

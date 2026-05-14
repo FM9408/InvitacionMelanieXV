@@ -52,9 +52,9 @@ const LoginModal = ({ open, handleClose }) => {
     return (
         <Modal open={open} onClose={handleClose}>
             <Box sx={style}>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="h5" fontWeight="bold">Ingresar</Typography>
-                    <IconButton onClick={handleClose} size="small">
+                <Box display="flex" justifyContent="Center" alignItems="center">
+                    <Typography variant="h2" fontWeight="bold">¡Bienvenido de nuevo!</Typography>
+                    <IconButton sx={{position: 'absolute', right: "5%", top: "5%"}} onClick={handleClose} size="small">
                         <CloseIcon />
                     </IconButton>
                 </Box>
@@ -80,14 +80,16 @@ const LoginModal = ({ open, handleClose }) => {
                         margin="normal"
                         required
                         onChange={handleChange}
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                                    </IconButton>
-                                </InputAdornment>
-                            ),
+                        slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }
                         }}
                     />
                     <Button
@@ -97,7 +99,7 @@ const LoginModal = ({ open, handleClose }) => {
                         color="primary"
                         sx={{ mt: 3, mb: 2, py: 1.5, fontWeight: 'bold' }}
                     >
-                        Iniciar Sesión
+                        <Typography variant="button">Iniciar Sesión</Typography>
                     </Button>
                 </form>
             </Box>

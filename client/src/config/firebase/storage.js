@@ -3,12 +3,10 @@ import * as firebaseStorage from 'firebase/storage';
 
 export const storage = firebaseStorage.getStorage(firebaseApp);
 
-if (import.meta.env.MODE === 'development') {
-    firebaseStorage.connectStorageEmulator(storage, 'localhost', 9199);
-}
 
 const imagesStorage = firebaseStorage.ref(storage, 'images');
 const audioStorage = firebaseStorage.ref(storage, 'audio');
+const videoStorage = firebaseStorage.ref(storage, 'videos');
 
 export async function getAudio () {
     const afterRef = firebaseStorage.ref(
@@ -28,10 +26,19 @@ export async function getAudio () {
    
     }
     
- }
+}
 
 export async function getimages() {
     const mela1Ref = firebaseStorage.ref(imagesStorage, 'imageMela!.jpeg');
+    const videoRef = firebaseStorage.ref(videoStorage, 'rose_video.mp4');
+    const afterTheMasca = firebaseStorage.ref(
+        audioStorage,
+        'After_the_Masquerade.mp3'
+    );
+    const corazonDeNinoRef = firebaseStorage.ref(
+        audioStorage,
+        'corazondeniño.mp3'
+    );
     const dashboardBackgroundRef = firebaseStorage.ref(
         imagesStorage,
         'dashboardBackground.png'
@@ -53,7 +60,10 @@ export async function getimages() {
 
     try {
         const urlMela1 = await firebaseStorage.getDownloadURL(mela1Ref);
+        const videoURL = await firebaseStorage.getDownloadURL(videoRef);
         const urlMela2 = await firebaseStorage.getDownloadURL(mela2Ref);
+        const urlAfterTheMasquerade =
+            await firebaseStorage.getDownloadURL(afterTheMasca);
         const urlMelanieWRose =
             await firebaseStorage.getDownloadURL(melanieWRose);
       
@@ -69,6 +79,9 @@ export async function getimages() {
         const roseBack2URL = await firebaseStorage.getDownloadURL(roseBack2Ref);
         const notFoundURL = await firebaseStorage.getDownloadURL(notFoundRef);
         const roseBackURL = await firebaseStorage.getDownloadURL(rosesBackref);
+        const urlCorazonDeNino =
+            await firebaseStorage.getDownloadURL(corazonDeNinoRef);
+
 
         const ImagesObject = {
             urlMela1: urlMela1,
@@ -82,6 +95,10 @@ export async function getimages() {
             notFound: notFoundURL,
             background: backgroundURL,
             dashboardBackground: dashboardBackgroundURL,
+            roseVideo: videoURL,
+            corazonDeNino: urlCorazonDeNino,
+            afterTheMascarade: urlAfterTheMasquerade,
+
         };
         return ImagesObject;
     } catch (error) {

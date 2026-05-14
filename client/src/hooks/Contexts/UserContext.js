@@ -6,6 +6,7 @@ const UserContext = React.createContext({
     visited: false,
     user: {
         id: '',
+        email:'',
         apellido: '',
         miembros: [],
     },
