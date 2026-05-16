@@ -10,6 +10,9 @@ import {
     IconButton,
     Popover,
     Paper,
+    Menu,
+    MenuItem,
+    useMediaQuery,
 } from '@mui/material';
 import {
     Restaurant,
@@ -17,6 +20,7 @@ import {
     Church,
     Logout,
     Notifications,
+    Menu as MenuIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../config/firebase/auth';
@@ -175,110 +179,207 @@ const AppBarButtons = () => {
 };
 
 export default function Appbar() {
-    const [onHover, setOnHover] = React.useState(false);
-    const { confirmationNotifications } = useSelector(
-        (state) => state.invitado
-    );
-    const { notifications } = useSelector((state) => state.mensajes);
     const theme = useTheme();
-    const [anchorEl, setAnchorEl] = React.useState(null);
-    const notificationsRef = React.useRef(null);
+    
+   
+   
+   const isMobile = useMediaQuery(theme.breakpoints.down('md')); 
+    
+    // --- NUEVO ESTADO PARA EL MENÚ MÓVIL ---
+    const [anchorElNav, setAnchorElNav] = React.useState(null);
 
-    function handlePopoverOpen(event) {
-        setAnchorEl(event.currentTarget);
-        setOnHover(true);
-    }
-    function handlePopoverClose() {
-        setAnchorEl(null);
-        setOnHover(false);
-    }
+    // Funciones para abrir y cerrar el menú móvil
+    const handleOpenNavMenu = (event) => {
+        setAnchorElNav(event.currentTarget);
+    };
+    const handleCloseNavMenu = () => {
+        setAnchorElNav(null);
+    };
 
-    const notificationsArray = React.useMemo(() => {
-        return notifications.concat(confirmationNotifications);
-    }, [notifications, confirmationNotifications]);
+    const navigate = useNavigate();
+   
 
-    React.useEffect(() => {
-        socket.on('newMensajeCreado', () => {
-            setOnHover(true);
-            handlePopoverOpen({ currentTarget: notificationsRef.current });
-            setTimeout(() => handlePopoverClose(), 3000);
-        });
+   
+
+ React.useEffect(() => {
+
+        
         return () => {
             socket.off('newMensajeCreado');
         };
-    }, [notifications, confirmationNotifications, notificationsArray]);
+    }, [isMobile,]);
 
     return (
         <AppBar variant='admin' sx={{ width: '100%' }}>
             <Toolbar sx={{ width: '100%' }}>
-                <AppBarButtons />
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'flex-end',
-                        position: 'absolute',
-                        top: 1,
-                        right: 1,
-                        width: `${100 / buttonsArray.length}%`,
-                    }}
-                >
-                    <IconButton
-                        aria-owns={onHover ? 'mouse-over-popup' : undefined}
-                        size='large'
-                        ref={notificationsRef}
-                        onPointerOver={(e) => {
-                            handlePopoverOpen(e);
-                        }}
-                        onPointerOut={() => {
-                            handlePopoverClose();
-                        }}
-                        sx={{
-                            color:
-                                !onHover ?
-                                    theme.palette.primary.main
-                                :   theme.palette.primary.dark,
-                            transition: 'color 1s ease-in-out',
-                        }}
-                    >
-                        <Notifications />
-                    </IconButton>
-                    <Popover
-                        id='mouse-over-popover'
-                        sx={{ pointerEvents: 'none' }}
-                        open={onHover}
-                        anchorEl={anchorEl}
-                        anchorOrigin={{
-                            vertical: 'bottom',
-                            horizontal: 'left',
-                        }}
-                        transformOrigin={{
-                            vertical: 'top',
-                            horizontal: 'left',
-                        }}
-                        onClose={handlePopoverClose}
-                        disableRestoreFocus
-                    >
-                        {notificationsArray.length > 0 ?
-                            <Grid container spacing={2} direction={'column'}>
-                                {notifications.map((notification, i) => {
-                                    return (
-                                        <Grid item key={i}>
-                                            <Paper sx={{ p: 1, m: 1 }}>
-                                                <Typography>
-                                                    {notification}
-                                                </Typography>
-                                            </Paper>
-                                        </Grid>
-                                    );
-                                })}
-                            </Grid>
-                        :   <Paper>
-                                <Typography>No hay notificaciones</Typography>
-                            </Paper>
-                        }
-                    </Popover>
-                </Box>
+                {
+                    isMobile ? (
+                        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', position: 'relative' }}>
+                            <IconButton
+                                size="large"
+                                aria-label="menu de navegación"
+                                aria-controls="menu-appbar"
+                                aria-haspopup="true"
+                                onClick={handleOpenNavMenu}
+                                color="inherit" // O el color de tu tema, ej: theme.palette.secondary.main
+                            >
+                                <MenuIcon />
+                            </IconButton>
+                            <Menu
+                                id="menu-appbar"
+                                anchorEl={anchorElNav}
+                                anchorOrigin={{
+                                    vertical: 'bottom',
+                                    horizontal: 'left',
+                                }}
+                                keepMounted
+                                transformOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'left',
+                                }}
+                                open={Boolean(anchorElNav)}
+                                onClose={handleCloseNavMenu}
+                                sx={{
+                                    display: { xs: 'block', md: 'none' },
+                                }}
+                            >
+                                {buttonsArray.map((button) => (
+                                    <MenuItem
+                                        key={button.name}
+                                        onClick={() => {
+                                            handleCloseNavMenu(); // Cerramos el menú al hacer clic
+                                            if (button.onClick) {
+                                                button.onClick();
+                                            } else {
+                                                navigate(button.href);
+                                            }
+                                        }}
+                                    >
+                                        {/* Mostramos el icono al lado del texto en el menú desplegable */}
+                                        <Box sx={{ mr: 1, display: 'flex', alignItems: 'center' }}>
+                                            {button.icon}
+                                        </Box>
+                                        <Typography textAlign="center">{button.name}</Typography>
+                                    </MenuItem>
+                                ))}
+                            </Menu>
+                        </Box>
+                    ) : (
+                        <Box>
+
+                            <AppBarButtons />
+                
+                           
+                           
+                    
+                        </Box>
+                    )}
+                <NotificationIcon />
             </Toolbar>
         </AppBar>
     );
+    
+}
+
+
+
+
+
+const NotificationIcon = () => {
+    const [onHover, setOnHover] = React.useState(false);
+     const [anchorEl, setAnchorEl] = React.useState(null);
+    const notificationsRef = React.useRef(null);
+    const { confirmationNotifications } = useSelector(
+        (state) => state.invitado
+    );
+ const { notifications } = useSelector((state) => state.mensajes);
+     const handlePopoverOpen = (event) => {
+        setAnchorEl(event.currentTarget);
+        setOnHover(true);
+    };
+       const notificationsArray = React.useMemo(() => {
+        return notifications.concat(confirmationNotifications);
+    }, [notifications, confirmationNotifications]);
+
+    
+
+    const handlePopoverClose = () => {
+        setAnchorEl(null);
+        setOnHover(false);
+    };
+    const theme = useTheme();
+    socket.on('newMensajeCreado', () => {
+            setOnHover(true);
+            handlePopoverOpen({ currentTarget: notificationsRef.current });
+            setTimeout(() => handlePopoverClose(), 3000);
+        });
+    return ( 
+         <Box
+                                sx={{
+                                    display: 'flex',
+                                    justifyContent: 'flex-end',
+                                    position: 'absolute',
+                                    top: 1,
+                                    right: 1,
+                                    width: `${100 / buttonsArray.length}%`,
+                                }}
+                            >
+                                <IconButton
+                                    aria-owns={onHover ? 'mouse-over-popup' : undefined}
+                                    size='large'
+                                    ref={notificationsRef}
+                                    onPointerOver={(e) => {
+                                        handlePopoverOpen(e);
+                                    }}
+                                    onPointerOut={() => {
+                                        handlePopoverClose();
+                                    }}
+                                    sx={{
+                                        color:
+                                            !onHover ?
+                                                theme.palette.primary.main
+                                                : theme.palette.primary.dark,
+                                        transition: 'color 1s ease-in-out',
+                                    }}
+                                >
+                                    <Notifications />
+                                </IconButton>
+                                <Popover
+                                    id='mouse-over-popover'
+                                    sx={{ pointerEvents: 'none' }}
+                                    open={onHover}
+                                    anchorEl={anchorEl}
+                                    anchorOrigin={{
+                                        vertical: 'bottom',
+                                        horizontal: 'left',
+                                    }}
+                                    transformOrigin={{
+                                        vertical: 'top',
+                                        horizontal: 'left',
+                                    }}
+                                    onClose={handlePopoverClose}
+                                    disableRestoreFocus
+                                >
+                                    {notificationsArray.length > 0 ?
+                                        <Grid container spacing={2} direction={'column'}>
+                                            {notifications.map((notification, i) => {
+                                                return (
+                                                    <Grid item key={i}>
+                                                        <Paper sx={{ p: 1, m: 1 }}>
+                                                            <Typography>
+                                                                {notification}
+                                                            </Typography>
+                                                        </Paper>
+                                                    </Grid>
+                                                );
+                                            })}
+                                        </Grid>
+                                        : <Paper>
+                                            <Typography>No hay notificaciones</Typography>
+                                        </Paper>
+                                    }
+                                </Popover>
+                            </Box>
+                          
+    )
 }

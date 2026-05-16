@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { useDispatch} from 'react-redux';
+import { useDispatch, useSelector} from 'react-redux';
 import { IconButton, Tooltip, Zoom } from '@mui/material';
 import PropTypes from 'prop-types';
 
@@ -36,7 +36,7 @@ export const GuestManagement = ({ mode, totalGuests }) => {
 
     // Límite de invitados (ejemplo basado en tu lógica anterior)
     const isLimitReached = totalGuests >= 150;
-
+    
     // --- Manejadores de Eventos ---
     
     const handleOpen = useCallback(() => {

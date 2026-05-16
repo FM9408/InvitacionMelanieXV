@@ -52,8 +52,8 @@ const Dashboard = () => {
     }, [ loadingData]);
    
     return (
-        <Suspense fallback={<div>Cargando...</div>}>
-             <Box sx={{ width: '100%' }}>
+       
+             <Box sx={{ width: '100%', overflow: 'hidden'}}>
           
             <Grid
                 container
@@ -152,9 +152,9 @@ const Dashboard = () => {
                 >
                     <Paper
                         sx={{
-                            p: 2,
+                          
                             minHeight: '400px',
-                            m: 1,
+                            mt: 1,
                             width: '100%',
                             borderTop: `6px solid ${theme.palette.primary.main}`,
                         }}
@@ -171,11 +171,11 @@ const Dashboard = () => {
                 <Grid item xs={12} md={8}>
                     <Paper
                         sx={{
-                            p: 2,
+                          
                             minHeight: '400px',
-                            minWidth: '450px',
+                            minWidth: '100%',
                             position: 'relative',
-                            m: 1,
+                            mt: 1,
                             borderTop: `6px solid ${theme.palette.primary.main}`,
                         }}
                     >
@@ -210,7 +210,7 @@ const Dashboard = () => {
                 </Grid>
             </Grid>
         </Box>
-       </Suspense>
+   
     );
 };
 

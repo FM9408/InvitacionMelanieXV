@@ -32,6 +32,21 @@ export const assignarMesas = createAsyncThunk(
     }
 )
 
+export const actualizarFamilia = createAsyncThunk(
+    'familias/actualizarFamilia',
+    async (familiaData, thunkAPI) => {
+        const response = await axios.put(
+            `${axios.defaults.baseURL}/api/invitados/modificarFamilia`,
+            {
+                ...familiaData,
+            }
+            
+        )
+        return response.data
+    }
+)
+        
+
 
 const familiesSlice = createSlice({
     name: 'familias',
@@ -73,6 +88,16 @@ const familiesSlice = createSlice({
         });
         builder.addCase(assignarMesas.rejected, (state, action) => {
             state.loading = false;
+            state.error = action.error.message;
+        });
+        builder.addCase(actualizarFamilia.pending, (state) => {
+            state.loading = true;
+            
+        });
+        builder.addCase(actualizarFamilia.fulfilled, (state) => {
+            state.loading = false;
+        });
+        builder.addCase(actualizarFamilia.rejected, (state, action) => {    
             state.error = action.error.message;
         });
     },

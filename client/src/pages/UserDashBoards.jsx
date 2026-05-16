@@ -318,7 +318,7 @@ const GuestDashboard = () => {
                                         </Grid>
                                         <Grid item>
                                             <Typography variant='h2'>
-                                                18:00 hrs
+                                                19:00 hrs
                                             </Typography>
                                         </Grid>
                                     </Grid>
@@ -439,7 +439,7 @@ const GuestDashboard = () => {
                                                                         }{' '}
                                                                         mesa:{' '}
                                                                         {
-                                                                            invitado.mesa
+                                                                            invitado.mesa === 0 ? "Aún no se te asigna una mesa" : invitado.mesa
                                                                         }
                                                                     </Typography>
                                                                 </Box>

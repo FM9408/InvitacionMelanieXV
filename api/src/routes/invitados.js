@@ -7,7 +7,8 @@ const {
     buscarFamilia,
     setConfirmation,
     setInvitationViewed,
-    asignacionDeMesas
+    asignacionDeMesas,
+    modificarFamilia
 } = require('../controllers/invitados/index.js')
 
 const invitadosRouter = Router()
@@ -20,6 +21,8 @@ invitadosRouter.get("/buscarMiembros", buscarPorCualquierMiembro)
 invitadosRouter.put("/setConfirmation", setConfirmation)
 invitadosRouter.put("/setInvitationViewed/", setInvitationViewed)
 invitadosRouter.put("/asignarMesa", asignacionDeMesas)
+invitadosRouter.put("/modificarFamilia", modificarFamilia)
+
 
 
 module.exports = invitadosRouter

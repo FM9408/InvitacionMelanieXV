@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, IconButton, useTheme } from '@mui/material';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
    
     deleteMensajeofDB,
@@ -8,7 +8,9 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import * as Proptypes from 'prop-types';
 
-export function CardMensaje({ m }) {
+export function CardMensaje ({ m }) {
+    const [sender, setSender] = React.useState("")
+    const {familias} = useSelector((state) => state.familias)
     const theme = useTheme();
     const dispatch = useDispatch();
     async function deleteHandle() {
@@ -18,7 +20,12 @@ export function CardMensaje({ m }) {
             console.error(error);
         }
     }
-    React.useEffect(() => {}, []);
+    React.useEffect(() => {
+        if (m.apellido === "" || !m.apellido) {
+            const familia = familias.find((f) => f.id === m.familia_Id);
+            setSender(familia.apellido)
+        }
+    }, []);
 
     return (
         <Box
@@ -60,7 +67,7 @@ export function CardMensaje({ m }) {
                         textAlign: 'center',
                     }}
                 >
-                    Familia {m.apellido}
+                    Familia {sender} 
                 </Typography>
 
                 <Typography

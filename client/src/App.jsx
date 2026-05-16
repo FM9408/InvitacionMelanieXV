@@ -11,7 +11,7 @@ import { setImages } from './store/slices/imagesSlice';
 import { setMensajes, fetchMensajes, setMessagesNotifications } from './store/slices/mensajesSlice.jsx';
 import { fetchInvitados } from './store/slices/adminSlice';
 import { setFamilias } from './store/slices/familiesSlice.js';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector, useDispatch, } from 'react-redux';
 import { setAdmin, setUser } from './store/slices/authSlice';
 import { ThemeContext } from '@emotion/react';
 import {useNavigate, useLocation } from 'react-router-dom';
@@ -20,24 +20,39 @@ import { setConfirmationNotifications } from './store/slices/invitationSlice.js'
 
 
 
+const invitadosFetch = (async ({ dispatch }) => {
+    try {
+        const familias = await dispatch(fetchInvitados());
+        return familias;
+    } catch (error) {
+        console.log(error)
+    }
+})
+const mensajesFetch = (async ({ dispatch }) => {
+    try {
+        const mensajes = await dispatch(fetchMensajes());
+        return mensajes;
+    } catch (error) {
+        console.log(error)
+    }
+})
 
 function App() {
     const { mensajes,   } = useSelector(
         (state) => state.mensajes
     );
    
-    const { invitados } = useSelector((state) => state.admin)
-    const {user, isAdmin} = useSelector((state) => state.auth)
+  const dispatch = useDispatch();
+    const { user } = useSelector((state) => state.auth);
     const { familias } = useSelector((state) => state.familias);
-    const theme = useTheme();
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const location = useLocation();
     const [background, setBackground] = useState('');
-    const [currentUser, setCurrentUser] = useState(null);
     const [isAuthChecking, setIsAuthChecking] = useState(true);
-    
-    React.useMemo(() => {
+    const theme = useTheme();
+   const navigate =useNavigate()
+    const location = useLocation();
+    const { invitados } = useSelector((state) => state.admin);
+
+React.useMemo(() => {
         socket.connect();
         socket.io.connect();
 
@@ -46,7 +61,6 @@ function App() {
             dispatch(fetchInvitados());
             dispatch(fetchMensajes());
             dispatch(setFamilias(invitados));
-            console.log(familias);
         });
         
         socket.on('newMensajeCreado', (data) => {
@@ -88,100 +102,70 @@ function App() {
             dispatch(setConfirmationNotifications(`${invitado.nombreCompleto} ha confirmado su asistencia}`));
         
         });
-    },[dispatch, familias, mensajes,])
-    // 1. CONTROL DE PERSISTENCIA REAL
+    },[dispatch, familias, mensajes, invitados])
 
 
-   
-
-
-    useEffect(() => {
-        const storedUser = globalThis.localStorage.getItem('user');
-        const parsedUser = JSON.parse(storedUser);
-        
-       
-    
-        // Al montar, verificamos si hay un usuario en sesión activa
+   useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (userAuth) => {
             if (userAuth) {
-                
+                if (!location.pathname.startsWith('/admin'))  { navigate('/admin/dashboard') }
                 dispatch(setAdmin(true));
-               
-               
-                if (globalThis.location.pathname === "/") {
-                    navigate('/admin/dashboard');
-                }
-            } else if (parsedUser.id) {
                 
+            } else {
                 dispatch(setAdmin(false));
-                dispatch(setUser(storedUser));
-               navigate
+                const storedUser = JSON.parse(localStorage.getItem('user'));
+                if (storedUser?.id) dispatch(setUser(storedUser));
+                if (location.pathname.startsWith("/admin")) {
+                    navigate("/")
+                }
+                if (location.pathname.startsWith("/user")) {
+                    navigate(`user/${storedUser.id}/dashboard`)
+                }
+               
             }
-                
-            else if (!userAuth || !user.id && !parsedUser.id && !isAdmin && location.pathname.startsWith("/admin")) { 
-                navigate("/")
-            } 
-
-
-            setIsAuthChecking(false); // Ya terminamos de verificar
+            setIsAuthChecking(false);
         });
-       
         return () => unsubscribe();
-    }, [dispatch, isAdmin, navigate, user.id, location.pathname]);
+    }, [dispatch, setAdmin, location.pathname]);
     
     // 2. CARGA DE DATA E IMÁGENES
     useEffect(() => {
-        
-    
         const loadAssets = async () => {
             try {
                 const imagesObject = await getimages();
                 dispatch(setImages(imagesObject));
-                if (imagesObject.dashboardBackground) {
-                    setBackground(imagesObject.dashboardBackground);
-                }
+                if (imagesObject.dashboardBackground) setBackground(imagesObject.dashboardBackground);
             } catch (err) {
-                console.error('Error cargando imágenes de Firebase:', err);
+                console.error('Error en Storage:', err);
             }
         };
-        return () => {
-            loadAssets();
-            
-            
-        };
-    }, [familias, mensajes, invitados, dispatch])
-    
+        loadAssets();
+    }, [dispatch]); // Solo se
     useEffect(() => {
         
+       
+        if (invitados.length === 0) {
+            invitadosFetch({ dispatch })
+            
+        }
+        if (mensajes.length === 0) {
+            mensajesFetch({ dispatch })
+
+        }
         if (familias.length !== invitados.length) {
             dispatch(setFamilias(invitados));
         }
-    },[familias, invitados, dispatch,])
+    },[familias, dispatch,invitados, mensajes])
 
-    const boxStyles = useMemo(
-        () => ({
-            minHeight: '100vh',
-            backgroundColor:
-                location.pathname === '/inMemoriam' ?
-                    '#000'
-                :   theme.palette.background.default,
-            backgroundImage:
-                location.pathname === '/inMemoriam' ?
-                    'none'
-                :   `url(${background})`,
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-        }),
-        [location.pathname, theme, background]
-    );
+   const boxStyles = useMemo(() => ({
+        minHeight: '100vh',
+        backgroundImage: location.pathname === '/inMemoriam' ? 'none' : `url(${background})`,
+        backgroundSize: 'cover',
+        display: 'flex',
+        flexDirection: 'column',
+    }), [location.pathname, background]);
 
-    // Mientras verifica la sesión, mostramos un estado vacío para evitar saltos de página
     if (isAuthChecking) return null;
-
     return (
         <UserContext.Provider value={user.user}>
             <ThemeContext.Provider value={theme}>

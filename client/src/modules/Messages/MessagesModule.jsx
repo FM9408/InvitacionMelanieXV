@@ -8,15 +8,11 @@ import { CardMensaje } from '../../components/CardMensaje'
 
 const MessagesModule = () => {
     const theme = useTheme()
-    const { familias } = useSelector((state) => state.familias)
+  
     const { mensajes, loadingMensajes } = useSelector((state) => state.mensajes)
-    const [messages, setMessages] = React.useState([])
+    
 
-    React.useEffect(() => {
-      if(messages.length !== mensajes.length){
-                    setMessages(mensajes)
-                   }
-    }, [mensajes,messages, familias])
+   
 
     return (
         <Container sx={{ overflowY: 'clip', overflowX: 'auto' }}>
@@ -33,7 +29,7 @@ const MessagesModule = () => {
                     }
                 }}
             >
-                {messages.length === 0 && !loadingMensajes ? (
+                {mensajes.length === 0 && !loadingMensajes ? (
                     <Typography sx={{ p: 2 }}>Aún no hay mensajes</Typography>
                 ) : (
                     <Box
@@ -45,7 +41,7 @@ const MessagesModule = () => {
                             p: 1
                         }}
                     >
-                        {messages.map((m) => (
+                        {mensajes.map((m) => (
                             <CardMensaje key={m.id} m={m} theme={theme} />
                         ))}
                     </Box>

@@ -31,6 +31,7 @@ export const deleteFamilia = createAsyncThunk(
 
 const initialState = {
     invitados: [],
+    currentUSer:[],
     loadingAdmin: true,
     error: null,
 }
@@ -46,6 +47,9 @@ export const adminSlice = createSlice({
         },
             addFamiliaLocal: (state, action) => {
                 state.invitados = state.invitados.concat(action.payload)
+        },
+            setCurrentUser: (state, action) => {
+                state.currentUSer = action.payload
             }
     },
     extraReducers: (builder) => {
@@ -63,6 +67,6 @@ export const adminSlice = createSlice({
     }
 })
 
-export const { deleteFamiliaLocal, addFamiliaLocal } = adminSlice.actions
+export const { deleteFamiliaLocal, addFamiliaLocal, setCurrentUser } = adminSlice.actions
 
 export default adminSlice.reducer

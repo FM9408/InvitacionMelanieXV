@@ -2,84 +2,74 @@ require('dotenv').config({
     path: './.env',
     override: true,
 });
-require('./src/db.js')
+require('./src/db.js');
 const { NODE_ENV, API_PORT } = process.env;
-const mock = require('./src/mock.js')
+const mock = require('./src/mock.js');
 const { server, io } = require('./src/config/websocketConfig');
 const connectionEmitter = require('./src/config/emmiter');
 const { conn } = require('./src/db.js');
-const api = require('./src/app.js');
 
 // --- Configuración de Eventos de Socket.io ---
-// Centralizamos los eventos para mantener el flujo de datos limpio
 const setupSocketEvents = () => {
-    connectionEmitter.on('familyCreated', (data) => {
-        io.emit('newFamilyCreated', data);
-    });
+    const events = {
+        familyCreated: 'newFamilyCreated',
+        mensajeCreado: 'newMensajeCreado',
+        confirmationUpdated: 'newConfirmation',
+        mensajeEliminado: 'newMensajeEliminado',
+        mesaAsignada: 'newMesaAsignada',
+        invitationUpdated: 'newConfirmation',
+    };
 
-    connectionEmitter.on('mensajeCreado', (data) => {
-        io.emit('newMensajeCreado', data);
+    Object.entries(events).forEach(([emitterEvent, socketEvent]) => {
+        connectionEmitter.on(emitterEvent, (data) =>
+            io.emit(socketEvent, data)
+        );
     });
-
-    connectionEmitter.on('confirmationUpdated', (data) => {
-        io.emit('newConfirmation', data);
-    });
-    connectionEmitter.on('mensajeEliminado', (data) => {
-        io.emit('newMensajeEliminado', data);
-    });
-    connectionEmitter.on('mesaAsignada', (data) => {
-        io.emit('newMesaAsignada', data);
-    });
-    connectionEmitter.on("invitationUpdated", (data) => {
-        io.emit('newConfirmation', data);
-    })
 };
 
-// --- Función de Inicio del Servidor ---
 const startServer = async () => {
     try {
-        // 1. Autenticar y sincronizar Base de Datos primero
         console.log('🔄 Conectando a la base de datos...');
         await conn.authenticate();
 
-        // Solo aplicar force/alter en desarrollo local
         const isDev = NODE_ENV === 'development';
+
+        // OPTIMIZACIÓN: Solo sincronizar si es estrictamente necesario
+        // En producción (Cloud Run), esto debería ser false para evitar lentitud
         await conn.sync({
             force: isDev,
-            alter: true,
+            alter: false, // Cambiar a true solo cuando modifiques modelos
             logging: false,
         });
-        console.log('✅ Base de datos sincronizada')
+        console.log('✅ Base de datos sincronizada');
 
-        // 2. Configurar eventos de socket
-         setupSocketEvents()
+        setupSocketEvents();
 
-        // 3. Iniciar escucha del servidor
-        // Cloud Run requiere escuchar en 0.0.0.0
-        const port = API_PORT || 8080;
+        // Seed de datos ANTES de levantar el listener para evitar estados inconsistentes
+        if (isDev) {
+            await mock.seedDatabase();
+            console.log('🌱 Datos de prueba cargados');
+        }
+
+        const port = API_PORT || 8080
         server.listen(port, '0.0.0.0', () => {
             console.log(
                 `🚀 Servidor listo en puerto ${port} (Modo: ${NODE_ENV})`
             );
         });
-         NODE_ENV === 'development' && mock.seedDatabase()  ; // Solo cargar datos de prueba en desarrollo
     } catch (error) {
         console.error('❌ Error crítico durante el arranque:', error);
-        process.exit(1); // Salida con error si no hay DB
+        process.exit(1);
     }
 };
-// --- Manejo de Cierre (Graceful Shutdown) ---
-// Vital para entornos Cloud para no dejar procesos colgados
+
+// Graceful Shutdown permanece igual...
 const gracefulShutdown = () => {
-    console.log('⚠️ Iniciando cierre del servidor...');
     server.close(async () => {
-        console.log('HTTP server cerrado.');
         try {
             await conn.close();
-            console.log('Conexión a DB cerrada.');
             process.exit(0);
         } catch (err) {
-            console.error('Error al cerrar DB:', err);
             process.exit(1);
         }
     });
@@ -88,5 +78,4 @@ const gracefulShutdown = () => {
 process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
 
-// Lanzar servidor
 startServer();

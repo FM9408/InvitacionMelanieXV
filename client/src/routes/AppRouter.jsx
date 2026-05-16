@@ -1,19 +1,24 @@
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Dashboard from '../pages/Dashboard';
-import ProtectedRoute from './ProtectedRute';
-import UserLayout from '../layouts/UserLayout';
-import AdminLayout from '../layouts/AdminLayout';
-import NotFound from '../pages/404';
-import { InvitacionNarrativa } from '../components/invitation/narrativeComponent';
-import Homepage from '../pages/Homepage';
-import {SeatingChart, TableAssignment} from '../pages/AsignaciónDeMesa';
-import GuestDashboard from '../pages/UserDashBoards';
-import InMemoriam from '../pages/inMemoriam';
+
+// Importaciones dinámicas (Lazy Loading)
+const Dashboard = lazy(() => import('../pages/Dashboard'));
+const InvitacionNarrativa = lazy(() => import('../components/invitation/narrativeComponent').then(module => ({ default: module.InvitacionNarrativa })));
+const Homepage = lazy(() => import('../pages/Homepage'));
+const SeatingChart = lazy(() => import('../pages/AsignaciónDeMesa').then(module => ({ default: module.SeatingChart })));
+const InMemoriam = lazy(() => import('../pages/inMemoriam'));
+const NotFound = lazy(() => import('../pages/404.jsx'));
+const GuestDashboard = lazy(() => import('../pages/UserDashBoards.jsx'));
+const UserLayout = lazy(() => import('../layouts/UserLayout'));
+const AdminLayout = lazy(() => import('../layouts/AdminLayout'));
+const ProtectedRoute = lazy(() => import('../routes/ProtectedRute'));
+const TableAssignment = lazy(() => import('../pages/AsignaciónDeMesa'));
 
 
 const AppRouter = () => {
     return (
-        <Routes>
+        <Suspense fallback={<div>Cargando...</div>}>
+            <Routes>
             {/* Ruta dinámica para el ID del invitado de PostgreSQL */}
 
             <Route path='/' element={<UserLayout />}>
@@ -28,7 +33,7 @@ const AppRouter = () => {
                 />
             </Route>
             <Route path='/admin' element={<ProtectedRoute />}>
-                <Route path='' element={<Navigate to='dashboard' />} />
+                <Route path='/admin' element={<Navigate to='dashboard' />} />
                 <Route path='' element={<AdminLayout />}>
                     <Route path='dashboard' element={<Dashboard />} />
                     <Route path='mesas' element={<SeatingChart />} />
@@ -40,6 +45,7 @@ const AppRouter = () => {
             <Route path='*' element={<Navigate to='/404' replace={false} />} />
             <Route path='/404' element={<NotFound />} />
         </Routes>
+        </Suspense>
     );
 };
 

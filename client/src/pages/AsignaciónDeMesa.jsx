@@ -37,10 +37,6 @@ export const SeatingChart = () => {
     }, [familias, dispatch]);
 
     // Sincronización atómica
-    useEffect(() => {
-        
-        
-    }, [dispatch, mesasData]);
 
     return (
         <Box sx={{ p: 4, bgcolor: '#f5f5f5', minHeight: '100vh' }}>

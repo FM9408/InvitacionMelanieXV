@@ -24,14 +24,16 @@ import { LoadingCircle } from '../../components/Decorations/LoadingCircle';
 import {
     deleteFamilia,
     deleteFamiliaLocal,
+    setCurrentUser,
 } from '../../store/slices/adminSlice';
+import { actualizarFamilia } from '../../store/slices/familiesSlice';
 import FamilyModal from '../../components/FamilyModal/FamilyModal';
 
 const GuestListModule = () => {
     const dispatch = useDispatch();
 
     // Selectores de Redux
-    const { invitados } = useSelector((state) => state.admin);
+    const { invitados,} = useSelector((state) => state.admin);
 
     // Estados locales
     const [progress, setProgress] = useState(0);
@@ -55,7 +57,14 @@ const GuestListModule = () => {
 
     // --- Manejadores de Acciones ---
     const handleEdit = (familia) => {
-        setModalConfig({ open: true, data: familia });
+        dispatch(setCurrentUser(invitados.find(family => family.id === familia.id)))
+        
+     
+            setTimeout(() => {
+                setModalConfig({ open: true, data: familia });
+            }, 1000);
+        
+        
     };
 
     const handleDelete = (id) => {
@@ -79,11 +88,21 @@ const GuestListModule = () => {
                 return 'error';
         }
     };
+    const saveEdition = async (familyData) => {
+        
+        try {
+            const data = dispatch(actualizarFamilia(familyData))
+            setModalConfig({ open: false, data: null });
+            setProgress(0);
+        } catch (error) {
+            throw new Error(error);
+        }
 
+    }
     return (
         <Box sx={{ width: '100%', overflow: 'hidden' }}>
             {loadingInfo ?
-                <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', }}>
                     <LoadingCircle
                         progress={progress}
                         setProgress={setProgress}
@@ -92,7 +111,7 @@ const GuestListModule = () => {
             :   <TableContainer
                     component={Paper}
                     elevation={0}
-                    sx={{ maxHeight: '70vh' }}
+                    sx={{ maxHeight: '70vh', width: '100%'}}
                 >
                     <Table stickyHeader size='small'>
                         <TableHead>
@@ -239,6 +258,7 @@ const GuestListModule = () => {
                 <FamilyModal
                     initialData={modalConfig.data}
                     onClose={() => setModalConfig({ open: false, data: null })}
+                    onSave={saveEdition }
                     open={modalConfig.open}
                     mode='Editar'
                 />
