@@ -1,6 +1,8 @@
 // client/src/routes/ProtectedRoute.jsx
+
 import { Navigate, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import React from 'react';
 
 const ProtectedRoute = () => {
   const { isAdmin } = useSelector((state) => state.auth);
@@ -16,7 +18,7 @@ const ProtectedRoute = () => {
   if (parsedUser.id && globalThis.location.pathname.startsWith("/user")) {
     return <Navigate to={`/user/${parsedUser.id}/dashboard`} replace />;
   }
-  }, [isAdmin, storedUser, parsedUser, globalThis.location.pathname])
+  }, [isAdmin, storedUser, parsedUser])
   
   return <Outlet />; // Renderiza las rutas hijas
 };
