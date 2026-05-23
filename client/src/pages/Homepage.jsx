@@ -22,7 +22,7 @@ export default function Homepage() {
     const onClose = () => {
         setModalOpen(false)
     }
-
+   
     const searchHandle = async (info) => {
         
         // 1. Creamos una lista plana de todas las familias para que Fuse pueda buscar
@@ -46,10 +46,11 @@ export default function Homepage() {
         if (results.length === 1) {
             // Tomamos el primer resultado (el más cercano)
             const familiaEncontrada = results[0].item
-            dispatch(setInvitado(familiaEncontrada))
-            globalThis.localStorage.setItem("visited", true);
-            globalThis.localStorage.setItem("user", JSON.stringify(familiaEncontrada));
             dispatch(setUser(familiaEncontrada))
+            dispatch(setInvitado(familiaEncontrada))
+            globalThis.sessionStorage.clear()
+            globalThis.sessionStorage.setItem("visited", true);
+            globalThis.sessionStorage.setItem("user", JSON.stringify(familiaEncontrada));
             if (familiaEncontrada.hasViewed === false) {
                 setInvitationViewed(familiaEncontrada.id);
                  navigate(`/user/${familiaEncontrada.id}`);
@@ -80,18 +81,25 @@ export default function Homepage() {
         }
     }
 
-    function selectedFamily(e) {
-        setInvitationViewed(e.id)
-        dispatch(setInvitado(e))
-        globalThis.localStorage.setItem("visited", true)
-        globalThis.localStorage.setItem("user", JSON.stringify(e))
-        navigate(`/user/${e.id}`)
-        onClose()
-        setInvitadosList([])
+    function selectedFamily (e) {
+        setInvitationViewed(e.id);
+        dispatch(setInvitado(e));
+        dispatch(setUser(e));
+        globalThis.sessionStorage.clear();
+       globalThis.sessionStorage.setItem("visited", true);
+        globalThis.sessionStorage.setItem("user", JSON.stringify(e));
+        if (e.hasViewed === true) {
+            
+            navigate(`/user/${e.id}/dashboard`);
+        } else {
+            navigate(`/user/${e.id}`);
+        }
+        onClose();
+        setInvitadosList([]);
         setError({
             state: false,
             message: ''
-        })
+        });
     }
 
     React.useEffect(() => {

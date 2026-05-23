@@ -34,7 +34,7 @@ const GuestListModule = () => {
 
     // Selectores de Redux
     const { invitados,} = useSelector((state) => state.admin);
-
+const familias = useSelector(state => state.familias)
     // Estados locales
     const [progress, setProgress] = useState(0);
     const [loadingInfo, setLoadingInfo] = useState(true);
@@ -53,7 +53,7 @@ const GuestListModule = () => {
         return () => {
             clearTimeout(timer);
         };
-    }, [invitados, loadingInfo, setLoadingInfo]); // NO dependas de 'progress' aquí
+    }, [invitados, loadingInfo, setLoadingInfo, familias]); // NO dependas de 'progress' aquí
 
     // --- Manejadores de Acciones ---
     const handleEdit = (familia) => {
@@ -88,7 +88,7 @@ const GuestListModule = () => {
                 return 'error';
         }
     };
-    const saveEdition = async (familyData) => {
+   const saveEdition = async (familyData) => {
         
         try {
             const data = dispatch(actualizarFamilia(familyData))

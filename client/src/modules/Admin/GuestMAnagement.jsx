@@ -27,6 +27,8 @@ const getIconByMode = (mode) => {
 
 export const GuestManagement = ({ mode, totalGuests }) => {
     const dispatch = useDispatch();
+    const familias = useSelector(state => state.familias)
+    
     
     // Estado para el modal
     const [modalOpen, setModalOpen] = useState(false);
@@ -61,9 +63,7 @@ export const GuestManagement = ({ mode, totalGuests }) => {
                 
                 // Opcional: Solo si el socket tarda mucho en responder
                 // dispatch(fetchInvitados());
-                setTimeout(() => {
-                    dispatch(fetchInvitados());
-                }, 1000);
+                
             
             } else {
                 console.warn(`Modo "${mode}" no implementado aún.`);
@@ -74,6 +74,9 @@ export const GuestManagement = ({ mode, totalGuests }) => {
             // Aquí podrías disparar un Snackbar/Alerta de error
         }
     };
+    React.useEffect(() => {
+
+    }, [modalOpen, familias])
 
     return (
         <>

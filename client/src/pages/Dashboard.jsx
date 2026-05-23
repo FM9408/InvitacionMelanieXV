@@ -4,7 +4,8 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import { useTheme } from '@mui/material';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { socket } from '../hooks/ioSockets/socket';
 
 // Módulos e Iconos
 import GuestListModule from '../modules/GuestList/GuestListModule';
@@ -13,6 +14,7 @@ import AnalyticsModule from '../modules/Analytics/AnalyticsModule'
 import PeopleIcon from '@mui/icons-material/People';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EmailIcon from '@mui/icons-material/Email';
+import { setFamilias } from '../store/slices/familiesSlice';
 import { GuestManagement } from '../modules/Admin/GuestMAnagement';
 import StatCard from '../components/StatCard';
 import MessagesModule from '../modules/Messages/MessagesModule';
@@ -21,7 +23,9 @@ import RoseDevider from '../components/Decorations/roseDivider';
 const Dashboard = () => {
     const theme = useTheme();
     const { invitados } = useSelector((state) => state.admin);
+    const {familias} = useSelector(state => state.familias)
     const { mensajes } = useSelector((state) => state.mensajes);
+    const dispatch = useDispatch()
     const [loadingData, setLoadingData] = React.useState(true);
     // 1. ELIMINACIÓN DE LA VIOLACIÓN (Cálculo en Memoria)
     // En lugar de useEffect + setState, usamos useMemo.
@@ -47,6 +51,11 @@ const Dashboard = () => {
 
     // 2. Control de carga (Simulado para estética)
     React.useEffect(() => {
+         socket.on('newMensajeEliminado', (data) => {
+                
+                    dispatch(setMensajes(mensajes.filter((m) => m.id !== data.id)));
+                });
+               
         const timer = setTimeout(() => setLoadingData(false), 2000);
         return () => clearTimeout(timer);
     }, [ loadingData]);
@@ -200,7 +209,7 @@ const Dashboard = () => {
                         >
                             <GuestManagement
                                 mode='Añadir'
-                                totalGuests={stats.total}
+                                totalGuests={stats.confirmed}
                             />
                         </Box>
 

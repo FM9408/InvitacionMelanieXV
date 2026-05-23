@@ -4,7 +4,12 @@ import { CheckCircle, Cancel } from '@mui/icons-material';
 
 
 
-function ConfirmarModeDashboard({ familyData, datos, willAssist, wontAssist, assistHandler, dontAssistHandler}) {
+function ConfirmarModeDashboard ({ familyData, datos, willAssist, wontAssist, assistHandler, dontAssistHandler }) {
+    
+  
+    
+  
+
     return (
         <Box>
             <Typography variant='h6' gutterBottom>
@@ -25,14 +30,14 @@ function ConfirmarModeDashboard({ familyData, datos, willAssist, wontAssist, ass
                         sx={{ width: `${100 / 3}%` }}
                         variant='invitadoName'
                     >
-                        {inv.nombre}
+                        {inv.nombreCompleto}
                     </Typography>
 
                     <Button
                         color='success'
                         startIcon={<CheckCircle />}
                         variant={
-                            willAssist.includes(inv.id) ? 'contained' : 'text'
+                           willAssist.includes(inv.id) && !wontAssist.includes(inv.id) || inv.willAssist === 'Confirmado' && !wontAssist.includes(inv.id) ? 'contained' : 'text'
                         }
                         onClick={() => {
                             assistHandler(inv);
@@ -47,7 +52,7 @@ function ConfirmarModeDashboard({ familyData, datos, willAssist, wontAssist, ass
                     </Button>
                     <Button
                         variant={
-                            wontAssist.includes(inv.id) ? 'contained' : 'text'
+                            wontAssist.includes(inv.id) && !willAssist.includes(inv.id) || inv.willAssist === 'Rechazada' && !willAssist.includes(inv.id) ? 'contained' : 'text'
                         }
                         onClick={() => {
                             dontAssistHandler(inv);

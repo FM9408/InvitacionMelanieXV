@@ -5,38 +5,41 @@ import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
+import useMediaQuery from '@mui/material/useMediaQuery'; // Detectar pantalla móvil
 import MesaCirculo from '../components/mesacirculo';
 import MesasDrawer from '../components/measaDrawer';
 
 // Importa tus acciones
-import {
-    setSinMesas,
-    setMesasData,
-} from '../store/slices/mesasSlice';
+import { invitadosFetch, renderMesasData } from '../App';
 import { updateMiembroMesa, assignarMesas } from '../store/slices/familiesSlice';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
 
 /**
  * VISTA 1: Plano General
- * Optimizada para evitar cálculos redundantes
+ * INTEGRALMENTE ORIGINAL - SIN CAMBIOS
  */
-export const SeatingChart = () => {
+export function SeatingChart(){
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { familias } = useSelector((state) => state.familias);
+    const [timer, setTimer] = React.useState(true)
     const { mesasData } = useSelector((state) => state.mesas);
 
     // Memorizamos el mapeo para que solo se calcule SI cambian las familias
-    useMemo(() => {
-       
-        // Procesamiento en un solo ciclo (O(n))
-        dispatch(setMesasData(familias));
-        
+    
+    
+    useEffect(() => {
+        const changeTimer = setInterval(() => {
+            setTimer(false)
+           const changeTimeout =  setTimeout(() => {
+               setTimer(true)
+               clearTimeout(changeTimeout)
+            }, 14000)
            
-    }, [familias, dispatch]);
-
-    // Sincronización atómica
+        }, 15000)
+        return () => clearInterval(changeTimer)
+    }, [timer])
 
     return (
         <Box sx={{ p: 4, bgcolor: '#f5f5f5', minHeight: '100vh' }}>
@@ -68,6 +71,7 @@ export const SeatingChart = () => {
                             <MesaCirculo
                                 key={n}
                                 numero={n}
+                                timer={timer}
                                 count={mesasData[n]?.length || 0}
                                 navigate={navigate}
                             />
@@ -111,6 +115,7 @@ export const SeatingChart = () => {
                             <MesaCirculo
                                 key={n}
                                 numero={n}
+                                timer={timer}
                                 count={mesasData[n]?.length || 0}
                                 navigate={navigate}
                             />
@@ -125,12 +130,25 @@ export const SeatingChart = () => {
                         alignItems='center'
                     >
                         <Grid item>
-                            <Button onClick={() => dispatch(assignarMesas(familias))} variant='contained'>Guardar cambios</Button>
+                            <Button onClick={() => {
+                                dispatch(assignarMesas(familias));
+                                let respuesta = globalThis.confirm("¿Estas seguro de guardar los cambios?")
+                                if (respuesta) {
+                                    navigate("/admin/dashboard");
+                                } else {
+                                    return 
+                                }
+                            }}
+                            variant='contained'>Guardar cambios</Button>
                         </Grid>
                         <Grid item>
                             <Button
                                 variant='contained'
-                                onClick={() => navigate(-1)}
+                                onClick={async () => {
+                                    const fechedFamilies = await invitadosFetch({ dispatch })
+                                        renderMesasData({ dispatch, familias: fechedFamilies.payload })
+                                }}
+                                
                             >
                                 Descartar Cambios
                             </Button>
@@ -144,28 +162,34 @@ export const SeatingChart = () => {
 
 /**
  * VISTA 2: Asignación Individual
- * Con Draggable optimizado
+ * Con Draggable optimizado y responsividad atómica corregida
  */
 export const TableAssignment = () => {
     const { id } = useParams();
     const dispatch = useDispatch();
     const mesaId = Number(id);
     const [llena, setllena] = React.useState(false);
-    const { familias } = useSelector((state) => state.familias);
     const { sinMesa, mesasData } = useSelector((state) => state.mesas);
     const invitadosEnMesa = useMemo(
         () => mesasData[mesaId] || [],
         [mesasData, mesaId]
     );
 
+    // breakpoint responsivo estricto para móviles
+    const isMobile = useMediaQuery('(max-width:768px)');
+
+    // ESCALADO GEOMÉTRICO DINÁMICO: Evita traslapes e imprecisiones de layout en pantallas chicas
+    const tableSize = isMobile ? 180 : 450;    // Diámetro de la mesa central blanca
+    const radius = isMobile ? 115 : 260;       // Distancia orbital de los invitados al centro
+    const guestSize = isMobile ? 50 : 80;      // Tamaño de las burbujas de los invitados
+
     const onDrop = useCallback(
         (e, destinoMesa) => {
-            if (destinoMesa !== 0 &&invitadosEnMesa.length === 10) {
+            if (destinoMesa !== 0 && invitadosEnMesa.length === 10) {
                 setllena(true);
                 setTimeout(() => {
                     setllena(false);
                 }, 8000);
-                
             } else {
                 e.preventDefault();
                 const invId = e.dataTransfer.getData('invitadoId');
@@ -176,69 +200,73 @@ export const TableAssignment = () => {
                             nuevaMesa: destinoMesa,
                         })
                     );
-                   
                 }
             }
         },
         [dispatch, invitadosEnMesa.length]
     );
+
     // Memorizamos el mapeo para que solo se calcule SI cambian las familias
-    useMemo(() => {
-       
-        // Procesamiento en un solo ciclo (O(n))
-        dispatch(setMesasData(familias));
-        
-           
-    }, [familias, dispatch]);
-
-    // Sincronización atómica
-    useEffect(() => {
-        
-        
-    }, [dispatch, mesasData]);
-
-    // Sincronización atómica
     
 
+
+
+
     return (
-        <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+        <Box 
+            sx={{ 
+                display: 'flex', 
+                height: '75vh', 
+                overflow: 'hidden',
+                flexDirection: isMobile ? 'column-reverse' : 'row' // En celular, el listado baja para no traslaparse con la mesa
+            }}
+        >
             <Alert
                 severity='error'
-
                 variant='filled'
                 sx={{
                     position: 'absolute',
                     top: llena ? 0 : '-100%',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    height: `${llena ?  10 : 0}%`,
+                    height: `${llena ? 10 : 0}%`,
                     width: '100%',
                     zIndex: 9999,
                     transition: 'all 1s linear',
-                }}>
-                    ¡Esta mesa está llena!
-                </Alert>
+                }}
+            >
+                ¡Esta mesa está llena!
+            </Alert>
+            
             <MesasDrawer onDrop={onDrop} sinMesa={sinMesa} mesaId={mesaId} />
 
             <Box
                 sx={{
                     flexGrow: 1,
                     display: 'flex',
+                    flexDirection: 'column', // Apilado vertical para acomodar limpiamente el rótulo arriba
                     justifyContent: 'center',
                     alignItems: 'center',
                     bgcolor: '#f0f0f0',
-                    width: '65%',
+                    width: isMobile ? '100%' : '65%', // En celular toma todo el ancho ya que el drawer está abajo
+                    height: isMobile ? '60vh' : '100%',
+                    gap: isMobile ? 2 : 4,
+                    p: 2,
+                    overflow: 'hidden'
                 }}
             >
+                
+
+                {/* CONTENEDOR DE LA MESA CIRCULAR */}
                 <Box
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => onDrop(e, mesaId, 0)}
                     sx={{
                         position: 'relative',
-                        width: 450,
-                        height: 450,
+                        width: tableSize,
+                        height: tableSize,
                         borderRadius: '50%',
-                        border: '10px solid #D4AF37',
+                        border: `${isMobile ? '6px' : '10px'} solid #D4AF37`,
                         bgcolor: 'white',
                         boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
                         display: 'flex',
@@ -248,26 +276,25 @@ export const TableAssignment = () => {
                     }}
                 >
                     <Typography
-                        variant='h2'
+                        variant={'h2'}
                         sx={{
                             color: '#D4AF37',
-                            opacity: 0.3,
+                            opacity: 1,
+                            zIndex: 10,
                             fontWeight: 'bold',
                         }}
                     >
-                        {id}
+                        Mesa {id}
                     </Typography>
                     <Typography
                         variant='body2'
-                        sx={{ color: 'text.secondary' }}
+                        sx={{ color: 'text.secondary', display: isMobile ? 'none' : 'block' }}
                     >
                         Arrastra aquí
                     </Typography>
 
                     {invitadosEnMesa.map((inv, index) => {
-                        const angle =
-                            (index / invitadosEnMesa.length) * (2 * Math.PI);
-                        const radius = 260;
+                        const angle = (index / invitadosEnMesa.length) * (2 * Math.PI);
                         const x = Math.cos(angle) * radius;
                         const y = Math.sin(angle) * radius;
 
@@ -281,8 +308,8 @@ export const TableAssignment = () => {
                                 sx={{
                                     position: 'absolute',
                                     transform: `translate(${x}px, ${y}px)`,
-                                    width: 80,
-                                    height: 80,
+                                    width: guestSize,
+                                    height: guestSize,
                                     borderRadius: '50%',
                                     bgcolor: 'secondary.dark',
                                     color: 'white',
@@ -290,12 +317,14 @@ export const TableAssignment = () => {
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                     textAlign: 'center',
-                                    fontSize: '1.75rem',
+                                    fontSize: isMobile ? '1rem' : '1.75rem', // Tipografía escalada de forma limpia
+                                    fontWeight: 'bold',
                                     boxShadow: 4,
                                     cursor: 'grab',
-                                    zIndex: 10,
-                                    p: 1,
-                                    border: '2px solid white',
+                                    zIndex: 0,
+                                    p: 0.5,
+                                    border: '2.5px solid white',
+                                    wordBreak: 'break-all'
                                 }}
                             >
                                 {inv.nombre.split(' ')[0]}

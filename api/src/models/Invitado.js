@@ -30,15 +30,7 @@ const invitadoModel = (sequelize) => {
                 type: DataTypes.DATE,
                 allowNull: true,
                
-                get(){
-                    return this.getDataValue('confirmationDate');
-                },
-                set (value) {
-                    const time = new Date(value).getDate()
-                    const month = new Date(value).getMonth()
-                    const year = new Date(value).getFullYear()
-                    this.setDataValue('confirmationDate', `${time}/${month}/${year}`);
-                }
+               
             },
 
 

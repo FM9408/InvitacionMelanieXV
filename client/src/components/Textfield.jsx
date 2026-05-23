@@ -23,7 +23,7 @@ function TextfieldDash ({ familyData, updateMember, onDeleteHandler }) {
                         error={nombre === ""}
                         color={nombre === "" || !nombre ? theme.palette.error.main : null}
                         helperText={nombre === "" || !nombre ? "El nombre no puede estar en blanco" : null}
-                        value={nombre}
+                        value={familyData.invitados[index].nombre}
                         slotProps={{
                             input: {
                                 endAdornment: <IconButton onClick={() => onDeleteHandler(id)}><DeleteIcon/></IconButton>
@@ -32,7 +32,7 @@ function TextfieldDash ({ familyData, updateMember, onDeleteHandler }) {
                         onChange={(e) => {
                                                                                         
                                                                                     
-                            updateMember({index: index, value: e.target.value});
+                            updateMember({index: index, value: e.target.value, id:id});
                          }}
                                                 sx={{ my: 1 }}
                                             />

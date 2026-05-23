@@ -34,6 +34,7 @@ async function createNewMensaje(req, res) {
                 mensaje,
                 apellido: getFamily.apellido,
                 familia_Id: familiaID,
+                enviado: Date.now()
             },
             { transaction: t, include: { all: true, nested: true } }
         );

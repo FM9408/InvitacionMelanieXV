@@ -26,7 +26,12 @@ export async function login(email, password) {
         const user = userCredential.user;
         
         return user;
-    } catch (error) {
-        throw new Error(error);
+    } catch (err) {
+        console.error(err)
+        const error = {
+            code: err.code
+        }
+        throw new Error(error)
+        
     }
 }

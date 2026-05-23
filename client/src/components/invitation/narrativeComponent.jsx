@@ -220,14 +220,13 @@ export const InvitacionNarrativa = () => {
 
             // FINAL DE LA ANIMACIÓN: Abrir modal forzosamente
             if (progress >= 1) {
-                const user = globalThis.localStorage.getItem('user');
+                const user = globalThis.sessionStorage.getItem('user');
                 const viewed = JSON.parse(user);
                
                 
                 if (viewed.hasViewed === true) {
                     navigate(`/user/${viewed.id}/dashboard`)
-                }
-                if (!hasOpened) {
+                }else if (!hasOpened) {
                     setModalOpen(true);
                     setHasOpened(true);
                 }
@@ -559,7 +558,14 @@ export const InvitacionNarrativa = () => {
             </Box>
 
             {
-                
+                <FamilyModal
+                    open={modalOpen}
+                    onClose={() => {
+                        setModalOpen(false);
+                    }}
+                    mode='Confirmar'
+                    setHasOpened={setHasOpened}
+                />
             }
         </Box>
     );

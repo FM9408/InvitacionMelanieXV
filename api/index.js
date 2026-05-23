@@ -18,10 +18,11 @@ const setupSocketEvents = () => {
         mensajeEliminado: 'newMensajeEliminado',
         mesaAsignada: 'newMesaAsignada',
         invitationUpdated: 'newConfirmation',
+        familiaModificada: 'newFamilyModified',
     };
 
     Object.entries(events).forEach(([emitterEvent, socketEvent]) => {
-        connectionEmitter.on(emitterEvent, (data) =>
+        connectionEmitter.on(emitterEvent, (data) => 
             io.emit(socketEvent, data)
         );
     });

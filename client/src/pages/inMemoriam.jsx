@@ -40,12 +40,15 @@ const InMemoriam = () => {
     const { datos } = useSelector((state) => state.invitado);
     const theme = useTheme();
     const { images } = useSelector((state) => state.images);
-    const user = globalThis.localStorage.getItem('user');
-    const parsedUser = JSON.parse(user);
+    const user= useSelector((state) => state.auth.user);
+    const userStored = globalThis.sessionStorage.getItem('user');
+    const parsedUser = JSON.parse(userStored);
+    const {isAdmin} = useSelector((state) => state.auth)
     const navigate = useNavigate();
     const music = React.useRef(new Audio(images.corazonDeNino))
     
     React.useEffect(() => {
+       globalThis.sessionStorage.setItem('user', JSON.stringify(user))
         music.current.loop = true
         music.current.currentTime = 0
         music.current.preload = true
@@ -67,7 +70,7 @@ const InMemoriam = () => {
                 <IconButton onClick={() => {
                     music.current.pause();
                     music.current.currentTime = 0;
-                    navigate(`/user/${parsedUser.id}/dashboard`);
+                    navigate(-1)
                 }} sx={{ position: "absolute", top: 20, left: 20, color: theme.palette.common.white }} href="/">
                     <Backspace />
                 </IconButton>

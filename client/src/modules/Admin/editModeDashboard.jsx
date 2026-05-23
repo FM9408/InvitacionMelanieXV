@@ -27,7 +27,10 @@ function EditModeDashBoard ({ familyData, updateMember, addMember, setFamilyData
                 value={familyData.nombreFamilia}
                 onChange={(e) => {
                     setFamilyData({
-                        nombreFamilia: e.target.value
+                        nombreFamilia: e.target.value,
+                        invitados: [...familyData.invitados],
+                        id: familyData.id
+                        
                 })}}
 
                                 />

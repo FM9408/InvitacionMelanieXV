@@ -24,7 +24,7 @@ if (process.env.NODE_ENV === 'development') {
 // Configuración de CORS
 api.use(
     cors({
-        origin: process.env.CLIENT_URL,
+        origin: process.env.NODE_ENV === 'production' ? process.env.CLIENT_URL : "*",
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         credentials: true,
         allowedHeaders: [

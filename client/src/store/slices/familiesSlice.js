@@ -34,7 +34,7 @@ export const assignarMesas = createAsyncThunk(
 
 export const actualizarFamilia = createAsyncThunk(
     'familias/actualizarFamilia',
-    async (familiaData, thunkAPI) => {
+    async (familiaData) => {
         const response = await axios.put(
             `${axios.defaults.baseURL}/api/invitados/modificarFamilia`,
             {
@@ -57,7 +57,6 @@ const familiesSlice = createSlice({
         },
         updateMiembroMesa: (state, action) => {
             const { invitadoId, nuevaMesa } = action.payload;
-            console.log(action.payload)
             state.familias.forEach((familia) => {
                 const miembro = familia.miembros.find(
                     (m) => m.id === invitadoId
