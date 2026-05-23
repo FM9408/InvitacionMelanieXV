@@ -3,12 +3,14 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
+import { invitadosFetch } from '../App'
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import MesaCirculo from '../components/mesacirculo';
 import MesasDrawer from '../components/measaDrawer';
 
-// 1. IMPORTACIÓN DEL POLYFILL CONDICIONAL
+// IMPORTACIÓN DEL POLYFILL CONDICIONAL PARA MÓVILES
 import { polyfill } from 'mobile-drag-drop';
 import 'mobile-drag-drop/default.css';
 
@@ -35,27 +37,38 @@ export function SeatingChart(){
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { familias } = useSelector((state) => state.familias);
-    const [timer, setTimer] = React.useState(true)
     const { mesasData } = useSelector((state) => state.mesas);
 
-    // CORRECCIÓN 1: useEffect en lugar de useMemo para acciones con efectos secundarios (side-effects)
-    const changeInterval = setInterval(() => { 
-        setTimer(!timer)
-    }, 15000)
-    React.useEffect(() => {
-        return () => clearInterval(changeInterval)
-     }, [changeInterval])
+    useEffect(() => {
+       
+    }, [familias, dispatch, mesasData]);
+
     return (
         <Box sx={{ p: 4, bgcolor: '#f5f5f5', minHeight: '100vh' }}>
-            <Typography variant='h4' align='center' sx={{ fontFamily: 'serif', mb: 6, color: '#1a1a1a' }}>
+            <Typography
+                variant='h4'
+                align='center'
+                sx={{ fontFamily: 'serif', mb: 6, color: '#1a1a1a' }}
+            >
                 Plano de Asignación
             </Typography>
 
-            <Grid container spacing={3} justifyContent='center' alignItems='center' direction={'column'}>
+            <Grid
+                container
+                spacing={3}
+                justifyContent='center'
+                alignItems='center'
+                direction={'column'}
+            >
                 <Grid item xs={12} lg={4}>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center' }}>
                         {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                            <MesaCirculo key={n} numero={n} timer={timer} count={mesasData[n]?.length || 0} navigate={navigate} />
+                            <MesaCirculo
+                                key={n}
+                                numero={n}
+                                count={mesasData[n]?.length || 0}
+                                navigate={navigate}
+                            />
                         ))}
                     </Box>
                 </Grid>
@@ -83,7 +96,12 @@ export function SeatingChart(){
                 <Grid item xs={12} lg={4}>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center' }}>
                         {[8, 9, 10, 11, 12, 13, 14, 15].map((n) => (
-                            <MesaCirculo key={n} timer={timer } numero={n} count={mesasData[n]?.length || 0} navigate={navigate} />
+                            <MesaCirculo
+                                key={n}
+                                numero={n}
+                                count={mesasData[n]?.length || 0}
+                                navigate={navigate}
+                            />
                         ))}
                     </Box>
                 </Grid>
@@ -93,7 +111,15 @@ export function SeatingChart(){
                             <Button onClick={() => dispatch(assignarMesas(familias))} variant='contained'>Guardar cambios</Button>
                         </Grid>
                         <Grid item>
-                            <Button variant='contained' onClick={() => navigate(-1)}>
+                            <Button variant='contained' onClick={async () => {
+                                try {
+                                    const families = await invitadosFetch({dispatch});
+                                    dispatch(setMesasData(families.payload));
+                                    
+                                } catch (error) {
+                                   console.error(error) 
+                                }
+                            }}>
                                 Descartar Cambios
                             </Button>
                         </Grid>
@@ -102,42 +128,50 @@ export function SeatingChart(){
             </Grid>
         </Box>
     );
-}
+};
 
 /**
- * VISTA 2: Asignación Individual (Optimizada para rendimiento táctil)
+ * VISTA 2: Asignación Individual (REDISEÑADA PARA SE TRADUZCA EXCELENTE EN MÓVIL)
  */
 export const TableAssignment = () => {
     const { id } = useParams();
     const dispatch = useDispatch();
     const mesaId = Number(id);
     const [llena, setllena] = React.useState(false);
+    const { familias } = useSelector((state) => state.familias);
     const { sinMesa, mesasData } = useSelector((state) => state.mesas);
-    
     const invitadosEnMesa = useMemo(() => mesasData[mesaId] || [], [mesasData, mesaId]);
 
-    // CORRECCIÓN 2: Guardar la longitud actual en una Ref para evitar romper la memorización de useCallback en cada render
+    // Detector estricto de pantallas móviles
+    const isMobile = useMediaQuery('(max-width:600px)');
+
+    // ESCALA MATEMÁTICA CORREGIDA: Evita el desborde en pantallas de 360px-400px
+    const tableSize = isMobile ? 180 : 450;    // Diámetro del círculo de la mesa blanca
+    const radius = isMobile ? 120 : 260;       // Distancia del centro a los invitados (Radio orbital)
+    const guestSize = isMobile ? 55 : 80;      // Diámetro de cada burbuja de invitado
+
     const invitadosLengthRef = useRef(invitadosEnMesa.length);
     useEffect(() => {
         invitadosLengthRef.current = invitadosEnMesa.length;
     }, [invitadosEnMesa.length]);
 
-    const onDrop = useCallback((e, destinoMesa) => {
-        if (destinoMesa !== 0 && invitadosLengthRef.current === 10) {
-            setllena(true);
-            setTimeout(() => setllena(false), 8000);
-        } else {
-            e.preventDefault();
-            const invId = e.dataTransfer.getData('invitadoId') || e.dataTransfer.getData('text/plain');
-            if (invId) {
-                dispatch(updateMiembroMesa({ invitadoId: invId, nuevaMesa: destinoMesa }));
+    const onDrop = useCallback(
+        (e, destinoMesa) => {
+            if (destinoMesa !== 0 && invitadosLengthRef.current === 10) {
+                setllena(true);
+                setTimeout(() => setllena(false), 8000);
+            } else {
+                e.preventDefault();
+                const invId = e.dataTransfer.getData('invitadoId') || e.dataTransfer.getData('text/plain');
+                if (invId) {
+                    dispatch(updateMiembroMesa({ invitadoId: invId, nuevaMesa: destinoMesa }));
+                }
             }
-        }
-    }, [dispatch]); // El callback ahora es estático y no se recrea constantemente
+        },
+        [dispatch]
+    );
 
-    // CORRECCIÓN 3: Cambiado useMemo por useEffect. Despachar acciones dentro de un render síncrono ralentiza severamente a React
-    
-    // Bloqueo eficiente de scroll para móviles
+   
     useEffect(() => {
         const preventDefault = (e) => {
             if (e.target.closest('[draggable="true"]')) {
@@ -151,7 +185,14 @@ export const TableAssignment = () => {
     }, []);
 
     return (
-        <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+        <Box 
+            sx={{ 
+                display: 'flex', 
+                height: '100vh', 
+                overflow: 'hidden',
+                flexDirection: isMobile ? 'column-reverse' : 'row' // En móvil, el Drawer va abajo para no estorbar
+            }}
+        >
             <Alert
                 severity='error'
                 variant='filled'
@@ -163,7 +204,7 @@ export const TableAssignment = () => {
                     height: llena ? '10%' : '0%',
                     width: '100%',
                     zIndex: 9999,
-                    transition: 'all 0.4s ease-out', // Suavizado de la animación para no congelar la GPU
+                    transition: 'all 0.4s ease-out',
                 }}
             >
                 ¡Esta mesa está llena!
@@ -171,7 +212,46 @@ export const TableAssignment = () => {
             
             <MesasDrawer onDrop={onDrop} sinMesa={sinMesa} mesaId={mesaId} />
 
-            <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: '#f0f0f0', width: '65%' }}>
+            <Box
+                sx={{
+                    flexGrow: 1,
+                    display: 'flex',
+                    flexDirection: 'column', // Apilado vertical para acomodar el nuevo rótulo
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    bgcolor: '#f0f0f0',
+                    width: isMobile ? '100%' : '65%',
+                    height: isMobile ? '65vh' : '100%',
+                    gap: isMobile ? 2 : 4,
+                    p: 2
+                }}
+            >
+                {/* ROTULO SUPERIOR CON EL NÚMERO DE MESA INDEPENDIENTE */}
+                <Box
+                    sx={{
+                        bgcolor: '#D4AF37',
+                        color: 'white',
+                        px: isMobile ? 3 : 5,
+                        py: 1,
+                        mb:7,
+                        borderRadius: '30px',
+                        boxShadow: '0 4px 15px rgba(212, 175, 55, 0.25)',
+                    }}
+                >
+                    <Typography
+                        variant={isMobile ? 'subtitle1' : 'h4'}
+                        sx={{ 
+                            fontFamily: 'serif', 
+                            fontWeight: 'bold', 
+                            letterSpacing: 1.5,
+                            textTransform: 'uppercase'
+                        }}
+                    >
+                        Mesa {id}
+                    </Typography>
+                </Box>
+
+                {/* CONTENEDOR DE LA MESA (ESPACIO CENTRAL) */}
                 <Box
                     onDragOver={(e) => {
                         e.preventDefault();
@@ -184,10 +264,10 @@ export const TableAssignment = () => {
                     }}
                     sx={{
                         position: 'relative',
-                        width: 450,
-                        height: 450,
+                        width: tableSize,
+                        height: tableSize,
                         borderRadius: '50%',
-                        border: '10px solid #D4AF37',
+                        border: `${isMobile ? '6px' : '10px'} solid #D4AF37`,
                         bgcolor: 'white',
                         boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
                         display: 'flex',
@@ -196,16 +276,27 @@ export const TableAssignment = () => {
                         alignItems: 'center',
                     }}
                 >
-                    <Typography variant='h2' sx={{ color: '#D4AF37', opacity: 0.3, fontWeight: 'bold' }}>
-                        {id}
-                    </Typography>
-                    <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                    {/* <Typography
+                        variant={isMobile ? 'h3' : 'h2'}
+                        sx={{
+                            color: '#D4AF37',
+                            opacity: 1,
+                            fontWeight: 'bold',
+                        }}
+                    >
+                         Mesa {id}
+                    </Typography> */}
+                    
+                    <Typography
+                        variant='caption'
+                        sx={{ color: 'text.secondary', display: isMobile ? 'flex' : 'block' }}
+                    >
                         Arrastra aquí
                     </Typography>
 
+                    {/* RENDERIZADO ORBITAL DE INVITADOS CON MEDIDAS CORREGIDAS */}
                     {invitadosEnMesa.map((inv, index) => {
                         const angle = (index / invitadosEnMesa.length) * (2 * Math.PI);
-                        const radius = 260;
                         const x = Math.cos(angle) * radius;
                         const y = Math.sin(angle) * radius;
 
@@ -219,9 +310,9 @@ export const TableAssignment = () => {
                                 }}
                                 sx={{
                                     position: 'absolute',
-                                    transform: `translate3d(${x}px, ${y}px, 0)`, // Usar translate3d delega el renderizado a la GPU
-                                    width: 80,
-                                    height: 80,
+                                    transform: `translate3d(${x}px, ${y}px, 0)`,
+                                    width: guestSize,
+                                    height: guestSize,
                                     borderRadius: '50%',
                                     bgcolor: 'secondary.dark',
                                     color: 'white',
@@ -229,16 +320,18 @@ export const TableAssignment = () => {
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                     textAlign: 'center',
-                                    fontSize: '1.75rem',
-                                    boxShadow: 4,
+                                    fontSize: isMobile ? '0.65rem' : '1rem', // Texto compacto y legible en celular
+                                    fontWeight: 'bold',
+                                    boxShadow: 3,
                                     cursor: 'grab',
-                                    zIndex: 10,
-                                    p: 1,
-                                    border: '2px solid white',
+                                    zIndex: 0,
+                                    p: 0.5,
+                                    border: '1.5px solid white',
                                     touchAction: 'none', 
                                     WebkitUserSelect: 'none',
                                     userSelect: 'none',
-                                    willChange: 'transform' // Le avisa al navegador que este elemento se va a mover
+                                    willChange: 'transform',
+                                    wordBreak: 'break-word', // Evita que nombres largos rompan el círculo
                                 }}
                             >
                                 {inv.nombre.split(' ')[0]}

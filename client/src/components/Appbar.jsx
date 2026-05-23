@@ -243,7 +243,7 @@ const [isLocation, setIsLocation] = React.useState(false);
     }
 
     return (
-        <AppBar variant='admin' sx={{ width: '100%' }}>
+        <AppBar variant='admin' sx={{ width: '100%', zIndex:999999 }}>
             <Toolbar sx={{ width: '100%' }}>
                 {isMobile ?
                     <Box

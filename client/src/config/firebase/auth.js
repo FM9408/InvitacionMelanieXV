@@ -9,11 +9,11 @@ export const auth = firebaseAuth.getAuth(firebaseApp);
 
 
 
-if (import.meta.env.MODE === "development") {
-    firebaseAuth.connectAuthEmulator(auth, "http://localhost:9099", {
-        disableWarnings: true
-    });
-}
+// if (import.meta.env.MODE === "development") {
+//     firebaseAuth.connectAuthEmulator(auth, "http://localhost:9099", {
+//         disableWarnings: true
+//     });
+// }
 
 
 export async function login(email, password) {

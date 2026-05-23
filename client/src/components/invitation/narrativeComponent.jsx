@@ -194,7 +194,7 @@ export const InvitacionNarrativa = () => {
         mainAudio.current.loop = false;
       mainAudio.current.pause()
         globalThis.history.scrollRestoration = 'manual';
-        window.scrollTo(0, 0);
+        globalThis.scrollTo(0, 0);
         let requestID;
         const totalDurationMS = 50000; // 60 segundos
 
@@ -213,10 +213,10 @@ export const InvitacionNarrativa = () => {
         const autoScroll = (currentTime) => {
             const elapsedTime = currentTime - startTime;
             const totalScrollable =
-                document.body.scrollHeight - window.innerHeight;
+                document.body.scrollHeight - globalThis.innerHeight;
             const progress = Math.min(elapsedTime / totalDurationMS, 1);
 
-            window.scrollTo(0, totalScrollable * progress);
+            globalThis.scrollTo(0, totalScrollable * progress);
 
             // FINAL DE LA ANIMACIÓN: Abrir modal forzosamente
             if (progress >= 1) {

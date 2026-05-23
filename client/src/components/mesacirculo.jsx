@@ -27,6 +27,7 @@ const fraseAnimation = {
 const MesaCirculo = React.memo(({ numero, count, navigate, }) => (
     <Box
         onClick={() => navigate(`/admin/asignar-mesa/${numero}`)}
+       
         sx={{
             width: 120,
             height: 120,
@@ -36,25 +37,29 @@ const MesaCirculo = React.memo(({ numero, count, navigate, }) => (
             position: 'relative',
             flexDirection: 'column',
             justifyContent: 'center',
+            overflow: 'hidden',
             alignItems: 'center',
-            cursor: 'pointer',
+            cursor: "pointer",
             transition: 'all 0.2s ease',
             '&:hover': {
                 transform: 'scale(1.05)',
                 boxShadow: '0 0 15px #D4AF37',
             },
+            userSelect: "none" ,
             border: '2px solid #D4AF37',
         }}
     >
         
-            <Box sx={{ ...invitadosAnimation, position:"absolute"}}>
-                <Typography
-                    variant='body1'
+        <Box sx={{ ...invitadosAnimation, position: "absolute",  }} >
+                <Typography 
+                variant='body1'
+                
                     sx={{ color: 'white', fontWeight: 'bold',}}
                 >
                     Mesa {numero}
                 </Typography>
-                <Typography
+            <Typography
+                
                     variant='h3'
                     sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.8rem' }}
                 >
@@ -63,9 +68,10 @@ const MesaCirculo = React.memo(({ numero, count, navigate, }) => (
             </Box>
         
         
-            <Box sx={{...fraseAnimation, position:"absolute"}}>
+            <Box  sx={{...fraseAnimation, position:"absolute"}}>
                 {count === 10 && (
-                    <Typography
+                <Typography
+
                         variant='body1'
                         sx={{ color: 'white', fontWeight: 'bold'}}
                     >
@@ -73,7 +79,8 @@ const MesaCirculo = React.memo(({ numero, count, navigate, }) => (
                     </Typography>
                 )}
                 {count < 10 && count > 0 && (
-                    <Typography
+                <Typography
+                   
                         variant='body1'
                         sx={{ color: 'white', fontWeight: 'bold'}}
                     >
@@ -81,7 +88,8 @@ const MesaCirculo = React.memo(({ numero, count, navigate, }) => (
                     </Typography>
                 )}
                 {count === 0 && (
-                    <Typography
+                <Typography
+                   
                         variant='body1'
                         sx={{ color: 'white', fontWeight: 'bold'}}
                     >
