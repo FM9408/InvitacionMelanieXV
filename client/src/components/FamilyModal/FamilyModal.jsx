@@ -170,12 +170,7 @@ const dontAssistHandler = (miembro) => {
 
     setFamilyData({ ...familyData, invitados: newMembers });
 };
-    const setDisablehandler = () => {
-        const bool =
-            datos.miembros.length === willAssist.length + wontAssist.length;
-
-        return !bool;
-    };
+  
     const removeMember = (index) => {
         const newMembers = familyData.invitados.filter((_, i) => i !== index);
         setFamilyData({ ...familyData, invitados: newMembers });
@@ -316,7 +311,7 @@ const dontAssistHandler = (miembro) => {
                     (mode === 'Editar' && (
                         <Button onClick={onClose} sx={{ width: '30%', textAlign: 'center', backgroundColor:theme.palette.error.main}}><Typography color={theme.palette.common.white} variant='button'>Cancelar</Typography></Button>
                     ))}
-                {mode === 'Confirmar' && (
+                {mode === 'Confirmar' && !globalThis.location.pathname.endsWith("/dashboard") && (
                     <Box
                         onMouseEnter={onHoverHandler}
                         onMouseLeave={onLeaveHandler}
@@ -353,7 +348,7 @@ const dontAssistHandler = (miembro) => {
                 {mode === 'Confirmar' ?
                     <Button
                         variant='contained'
-                        sx={{ width: '70%' }}
+                        sx={{ width: globalThis.location.pathname.endsWith("/dashboard") ? '100%' :'70%' }}
                        
                         onClick={() => {
                             confirmationHandler();

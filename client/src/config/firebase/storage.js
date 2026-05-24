@@ -4,29 +4,13 @@ import * as firebaseStorage from 'firebase/storage';
 export const storage = firebaseStorage.getStorage(firebaseApp);
 
 
+
+
 const imagesStorage = firebaseStorage.ref(storage, 'images');
 const audioStorage = firebaseStorage.ref(storage, 'audio');
 const videoStorage = firebaseStorage.ref(storage, 'videos');
 
-export async function getAudio () {
-    const afterRef = firebaseStorage.ref(
-        audioStorage,
-        'After_the_Masquerade.mp3'
-    );
-    try {
-        const afterTheMasqueradeURL =
-            await firebaseStorage.getDownloadURL(afterRef);
-            
-            const audioObjects = {
-                afterTheMasquerade: afterTheMasqueradeURL,
-            };
-       return audioObjects;
-    } catch (error) {
-       throw new Error(error);
-   
-    }
-    
-}
+
 
 export async function getimages() {
     const mela1Ref = firebaseStorage.ref(imagesStorage, 'imageMela!.jpeg');

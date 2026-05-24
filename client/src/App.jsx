@@ -22,7 +22,6 @@ import { ThemeContext } from '@emotion/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './App.css';
 
-
 export const renderMesasData = ({ dispatch, familias }) => {
     // Procesamiento en un solo ciclo (O(n))
     dispatch(setMesasData(familias));
@@ -31,7 +30,7 @@ export const renderMesasData = ({ dispatch, familias }) => {
 export const invitadosFetch = async ({ dispatch }) => {
     try {
         const familias = await dispatch(fetchInvitados());
-        return familias;
+        return familias.payload;
     } catch (error) {
         throw new Error(error);
     }
@@ -64,81 +63,90 @@ function App() {
     const location = useLocation();
     const { invitados } = useSelector((state) => state.admin);
 
-    React.useMemo(() => {
+  // ✅ CORRECCIÓN DEFINITIVA: Sockets migrados a useEffect con limpieza de eventos
+    useEffect(() => {
         socket.connect();
         socket.io.connect();
 
         socket.on('newConnection', async () => {
             try {
-                await invitadosFetch({ dispatch });
+                const familiasData = await invitadosFetch({ dispatch });
                 await mensajesFetch({ dispatch });
-                dispatch(setFamilias(invitados));
+                // Usamos la data devuelta por la promesa en lugar del estado externo 'invitados'
+                if (familiasData) {
+                    dispatch(setFamilias(familiasData));
+                }
             } catch (error) {
-                console.error(error);
+                setError({ error: true, message: error.message });
+                setTimeout(() => setError({ error: false, message: "" }), 5000);
             }
         });
 
         socket.on('newMensajeCreado', (data) => {
-            if (familias.length > 0) {
-                const familiaFind = familias.find(
-                    (familia) => familia.id === data.familia_Id
-                );
-
-                dispatch(
-                    setMensajes({
-                        ...data,
-                        apellido: familiaFind.apellido,
-                    })
-                );
-                dispatch(
-                    setMessagesNotifications(
-                        `¡La familia ${familiaFind.apellido} ha enviado un mensaje!`
-                    )
-                );
+            // Usamos un callback funcional o validación interna para evitar depender de 'familias' en el scope externo
+            if (data) {
+                dispatch(setMensajes(data));
+                dispatch(setMessagesNotifications(`¡Has recibido un nuevo mensaje!`));
             }
         });
 
-        socket.on('newMensajeEliminado', (data) => {
-            dispatch(setMensajes(mensajes.filter((m) => m.id !== data.id)));
+        socket.on('newMensajeEliminado', async () => {
+            try {
+                const mensajes = await mensajesFetch({ dispatch });
+                if (mensajes) {
+                    mensajes.forEach(m => dispatch(setMensajes(m)));
+                }
+            } catch (error) {
+                setError({ error: true, message: error.message });
+                setTimeout(() => setError({ error: false, message: "" }), 5000);
+            }
         });
-        socket.on('newFamilyCreated', () => {
-           
-            invitadosFetch({ dispatch });
+
+        socket.on('newFamilyCreated', async () => {
+            try {
+                await invitadosFetch({ dispatch });
+            } catch (error) {
+                setError({ error: true, message: error.message });
+                setTimeout(() => setError({ error: false, message: "" }), 5000);
+            }
         });
+
         socket.on('newMesaAsignada', (data) => {
-            console.log(data);
+            console.log("Mesa asignada vía socket:", data);
         });
+
         socket.on('newFamilyModified', async () => {
-            await invitadosFetch({ dispatch });
+            try {
+                await invitadosFetch({ dispatch });
+            } catch (error) {
+                setError({ error: true, message: error.message });
+                setTimeout(() => setError({ error: false, message: "" }), 5000);
+            }
         });
 
         socket.on('newConfirmation', async () => {
             await invitadosFetch({ dispatch });
-            // dispatch(setUser(invitado));
-            // dispatch(setInvitado(invitado));
-            // const familiaFind = familias.find(familia => familia.id === invitado.familiaId);
-            // const familiasStored = familias.filter(familia => familia.id !== invitado.familiaId);
-            // familiaFind.miembros.forEach(miembro => {
-            //     if (miembro.id === invitado.id) {
-            //         miembro.willAssist = invitado.willAssist;
-            //         miembro.confirmationDate = invitado.confirmationDate;
-            //     }
-            // });
-            // familiasStored.push(familiaFind);
-            // dispatch(setFamilias(familiasStored));
-            // // dispatch(setConfirmationNotifications(`${invitado.nombreCompleto} ha confirmado su asistencia}`));
-            // await invitadosFetch({dispatch})
         });
-    }, [dispatch, familias, mensajes, invitados]);
-    // 1. CONTROL DE PERSISTENCIA REAL
+
+        // FUNCIÓN DE LIMPIEZA: Apaga los listeners viejos cuando el componente cambie o se desmonte
+        return () => {
+            socket.off('newConnection');
+            socket.off('newMensajeCreado');
+            socket.off('newMensajeEliminado');
+            socket.off('newFamilyCreated');
+            socket.off('newMesaAsignada');
+            socket.off('newFamilyModified');
+            socket.off('newConfirmation');
+            socket.disconnect();
+        };
+    }, [dispatch]); // Arreglo limpio: Solo depende de dispatch
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (userAuth) => {
             if (userAuth) {
-                
                 dispatch(setAdmin(true));
             } else {
-                dispatch(setAdmin(false))
+                dispatch(setAdmin(false));
             }
             setIsAuthChecking(false);
         });
@@ -158,24 +166,32 @@ function App() {
                     error: true,
                     message: err.message,
                 });
+                const errorTimeOut = setTimeout(() => {
+                    setError({
+                        error: false,
+                        message: '',
+                    });
+                    clearTimeout(errorTimeOut);
+                }, 5000);
             }
         };
         loadAssets();
     }, [dispatch]); // Solo se
 
-    useMemo(() => {
-        renderMesasData({ dispatch, familias });
-    }, [dispatch, familias]);
+   // ✅ CORRECCIÓN
+useEffect(() => {
+    renderMesasData({ dispatch, familias });
+}, [dispatch, familias]);
 
     useEffect(() => {
         if (familias.length !== invitados.length) {
             dispatch(setFamilias(invitados));
         }
-        if (!isAdmin && globalThis.location.pathname.startsWith("/admin")) {
-            navigate("/")
-        } else if (isAdmin && globalThis.location.pathname === "/" ) {
-            navigate("/admin/dashboard")
-        } 
+        if (!isAdmin && globalThis.location.pathname.startsWith('/admin')) {
+            navigate('/');
+        } else if (isAdmin && globalThis.location.pathname === '/') {
+            navigate('/admin/dashboard');
+        }
     }, [
         familias,
         dispatch,
@@ -201,7 +217,19 @@ function App() {
         }),
         [location.pathname, background]
     );
-
+    document.addEventListener('error', (error) => {
+        setError({
+            error: true,
+            message: error.message,
+        });
+        const errorTimeOuted = setTimeout(() => {
+            setError({
+                error: false,
+                message: '',
+            });
+            clearTimeout(errorTimeOuted);
+        }, 5000);
+    });
     if (isAuthChecking) return null;
     return (
         <UserContext.Provider value={user.user}>
@@ -210,7 +238,7 @@ function App() {
                     <Alert
                         severity='error'
                         sx={{
-                            height: error.error ? '10%' : 0,
+                            minHeight: error.error ? '10%' : 0,
                             position: 'absolute',
                             top: error.error ? 0 : '-100%',
                             width: '100%',

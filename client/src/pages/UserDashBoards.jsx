@@ -12,11 +12,8 @@ import Paper from '@mui/material/Paper';
 import Alert from '@mui/material/Alert';
 import petalPNG from '../assets/images/cherryBlossom.png';
 import confettiPng from '../assets/images/confeti.png';
-import snowflakePng from '../assets/images/snowflake.png';
 import gifts from '../assets/images/gifts.png';
 import PetalosEfecto from '../components/Decorations/fallingPetals.jsx';
-import mrsPots from "../assets/images/sraPots.png"
-import tacita from "../assets/images/tacita.png"
 import RoseDevider from '../components/Decorations/roseDivider';
 import {
     Restaurant as UtensilsIcon,
@@ -31,17 +28,17 @@ import { sendMensaje } from '../store/slices/mensajesSlice.jsx';
 import { useNavigate } from 'react-router-dom';
 import FamilyModal from '../components/FamilyModal/FamilyModal.jsx';
 
-
 const mensajes = [
     'No olvides escribir tus buenos deseos para la quinceañera en la sección de mensajes!',
     '¿No sabes donde es el evento? ¡Puedes verlo en la sección de mapas!',
-    '¡No olvides tu regalo!',
+    '¡No olvides tu regalo!🎁🎁🎁🎁',
     '¡Recuerda que la fiesta es para celebrar a la quinceañera, así que trae tu mejor actitud!',
     '¡No olvides revisar tu mesa asignada en la sección de mesas!',
+    '¡No olvides confirmar! Si no confirmas no podremos asignarte mesa para el evento'
 ];
 
-const effects = [petalPNG, confettiPng, gifts]
-function setEffectHandle () {
+const effects = [petalPNG, confettiPng, gifts];
+function setEffectHandle() {
     const index = Math.floor(Math.random() * effects.length);
     return index;
 }
@@ -50,16 +47,20 @@ const GuestDashboard = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const theme = useTheme();
-    const [alertOpen, setAlertOpen] = useState();
+    // Estado para controlar qué mensaje del array estático se muestra
+    const [currentMsgIndex, setCurrentMsgIndex] = useState(0);
+    // Estado booleano que controla si la alerta está visible en pantalla o guardada arriba
+    const [showAlert, setShowAlert] = useState(false);
+
     const [isMesaAssign, setIsMesaAssign] = useState(false);
-    const [mensajeShown, setMensajeIndex] = useState(0);
-    const {user} = useSelector((state) => state.auth);
+
+    const { user } = useSelector((state) => state.auth);
     const [modalOpen, setModalOpen] = useState(false);
     const [hasOpened, setHasOpened] = useState(false);
     const [miembros, setMiembros] = React.useState([]);
     // Estado para los miembros
-    const [effct, setEffct] = React.useState("")
-    
+    const [effct, setEffct] = React.useState('');
+
     // Estado para el mensaje
     const [mensaje, setMensaje] = useState('');
 
@@ -68,6 +69,35 @@ const GuestDashboard = () => {
         nombre: '',
         mesa: '',
     });
+    React.useEffect(() => {
+        // Función recursiva con timeouts dinámicos para manejar los tiempos asimétricos
+        const runSequence = () => {
+            // 1. Muestra la alerta de inmediato
+            setShowAlert(true);
+
+            // 2. A los 3 segundos, la oculta subiéndola
+            setTimeout(() => {
+                setShowAlert(false);
+
+                // 3. Espera los 15 segundos oculta (18 segundos en total desde el inicio)
+                // antes de cambiar al siguiente mensaje y reiniciar la secuencia
+                setTimeout(() => {
+                    setCurrentMsgIndex(
+                        (prevIndex) => (prevIndex + 1) % mensajes.length
+                    );
+                    runSequence();
+                }, 15000);
+            }, 5000);
+        };
+
+        // Arranca la secuencia al montar el componente
+        runSequence();
+
+        // Limpieza por si el componente se desmonta
+        return () => {
+            setShowAlert(false);
+        };
+    }, []);
 
     const handleEscribirMensaje = (e) => {
         setMensaje(e.target.value); // Aquí dispararías tu evento (ej. con el emitter o socket que definas)
@@ -85,73 +115,103 @@ const GuestDashboard = () => {
         setMensaje('');
     };
     const storagedUser = user;
-    const id =user.id;
-    
-   
-   React.useEffect(() => {
-    const apellido = user.apellido;
-    const mesa = user.mesa;
-    let mensajeIndex = 0;
+    const id = user.id;
 
-    setInfo({
-        nombre: apellido,
-        mesa: mesa,
-        id: id,
-    });
+    React.useEffect(() => {
+        const apellido = user.apellido;
+        const mesa = user.mesa;
 
-    setEffct(effects[setEffectHandle()])
-    // SOLUCIÓN: Sincronizar el estado local cada vez que el "user" de Redux mute
-    const invitados = user.miembros || [];
-    setMiembros(invitados); 
+        setInfo({
+            nombre: apellido,
+            mesa: mesa,
+            id: id,
+        });
 
-    // Control de mesas asignadas basado en el objeto actualizado
-    let asignada = true;
-    invitados.forEach((member) => {
-        if (member.mesa === 0) {
-            asignada = false;
-        }
-    });
-    setIsMesaAssign(asignada);
-    
-    
-    const interval = setInterval(() => {
-        // ... tu lógica de intervalos de mensajes
-        setEffct(effects[setEffectHandle()])
-    }, 20000);
- 
-    return () => {
-        clearInterval(interval);
-    };
-// Agregamos user.miembros a las dependencias para que el efecto se ejecute al cambiar los datos
-}, [alertOpen, storagedUser, hasOpened, modalOpen, user, user.miembros, effct, id]);
+        setEffct(effects[setEffectHandle()]);
+        // SOLUCIÓN: Sincronizar el estado local cada vez que el "user" de Redux mute
+        const invitados = user.miembros || [];
+        setMiembros(invitados);
+
+        // Control de mesas asignadas basado en el objeto actualizado
+        let asignada = true;
+        invitados.forEach((member) => {
+            if (member.mesa === 0) {
+                asignada = false;
+            }
+        });
+        setIsMesaAssign(asignada);
+
+        const interval = setInterval(() => {
+            // ... tu lógica de intervalos de mensajes
+            setEffct(effects[setEffectHandle()]);
+        }, 20000);
+
+        return () => {
+            clearInterval(interval);
+        };
+        // Agregamos user.miembros a las dependencias para que el efecto se ejecute al cambiar los datos
+    }, [
+        
+        storagedUser,
+        hasOpened,
+        modalOpen,
+        user,
+        user.miembros,
+        effct,
+        id,
+    ]);
+
     return (
-        <Box sx={{height: 'fit-content', width: '100%'}}>
+        <Box sx={{ height: 'fit-content', width: '100%' }}>
             <Box sx={{ position: 'relative', p: 2 }}>
                 <PetalosEfecto rutaPng={effct} cantidad={80} />
                 <Alert
                     severity='info'
+                    icon={false} // Estilo banner limpio, ideal para las sugerencias
                     sx={{
-                        position: 'absolute',
-                        top: alertOpen > 0 ? 0 : '-100%',
+                        position: 'fixed',
+                        left: '50%',
+                        width: '90%',
+                        maxWidth: '650px',
+                        zIndex: 9999, // Asegura que quede por encima de todo el contenido al bajar
+                        bgcolor: 'rgba(255, 255, 255, 0.95)',
+                        border: '1px solid #D4AF37',
+                        boxShadow: '0px 8px 24px rgba(0,0,0,0.12)',
+                        borderRadius: 3,
+                        p: 2,
+                        textAlign: 'center',
+                        display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        height: `${alertOpen}%`,
-                        width: '100%',
-                        zIndex: 9999,
-                        transition: 'all 3s ease-in-out',
+                        minHeight: '60px',
+                        WebkitUserSelect: 'none',
+                        userSelect: 'none',
+
+                        // POSICIONAMIENTO DINÁMICO:
+                        // Si showAlert es true, baja a 20px de la parte superior.
+                        // Si es false, se esconde hacia arriba completamente fuera del viewport.
+                        top: 0,
+                        transform:
+                            showAlert ?
+                                'translate(-50%, 20px)'
+                            :   'translate(-50%, -150%)',
+                        opacity: showAlert ? 1 : 0,
+
+                        // Transición fluida para la entrada y salida de la pantalla
+                        transition:
+                            'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease-in-out',
                     }}
                 >
                     <Typography
-                        variant='body2'
+                        variant='body1'
                         sx={{
-                            fontWeight: 'bold',
-                            color: theme.palette.secondary.dark,
+                            fontWeight: 500,
+                            color: theme.palette.text.primary,
                         }}
                     >
-                        {mensajes[mensajeShown]}
+                        {mensajes[currentMsgIndex]}
                     </Typography>
                 </Alert>
-
                 <Container sx={{ mb: 4, width: '100%' }}>
                     {/* Bienvenida */}
                     <Grid container spacing={2} direction={'column'}>
@@ -445,38 +505,28 @@ const GuestDashboard = () => {
                                                                             invitado.id
                                                                         }
                                                                     >
-                                                                        {
-                                                                            invitado.willAssist !== "Rechazada" &&
-                                                                             <Typography
-                                                                            variant='body1'
-                                                                            sx={{
-                                                                                width: '100%',
-                                                                            }}
-                                                                        >
-                                                                            {
-                                                                                invitado.nombreCompleto
-                                                                            }{' '}
-                                                                            mesa:{' '}
-                                                                            {(
-                                                                                invitado.mesa ===
-                                                                                0
-                                                                            ) ?
-                                                                                'Aún no se te asigna una mesa'
-                                                                            :   invitado.mesa
-                                                                            }
-                                                                        </Typography>
-                                                                        }
-                                                                        {
-                                                                            invitado.willAssist === "Rechazada" &&
+                                                                        {invitado.willAssist !==
+                                                                            'Rechazada' && (
                                                                             <Typography
-                                                                            variant='body1'
-                                                                            sx={{
-                                                                                width: '100%',
-                                                                                    }}
-                                                                                >
-                                                                                   {invitado.nombreCompleto} No nos acompañara ese día
-                                                                           </Typography>
-                                                                        }
+                                                                                variant='body1'
+                                                                                sx={{
+                                                                                    width: '100%',
+                                                                                }}
+                                                                            >
+                                                                                {
+                                                                                    invitado.nombreCompleto
+                                                                                }{' '}
+                                                                                mesa:{' '}
+                                                                                {(
+                                                                                    invitado.mesa ===
+                                                                                    0
+                                                                                ) ?
+                                                                                    'Aún no se te asigna una mesa'
+                                                                                :   invitado.mesa
+                                                                                }
+                                                                            </Typography>
+                                                                        )}
+                                                                        
                                                                     </Box>
                                                                 );
                                                             }
@@ -766,30 +816,41 @@ const GuestDashboard = () => {
                             </Grid>
                         </Grid>
                     </Grid>
-                    <Box sx={{ width: '100%' }}>
-                        <Box
+                    <Grid container gap={1} direction={{ xs: 'column', md: 'row'}} sx={{ width: '100%', justifyItems: 'center', alignItems: 'center'}}>
+                        <Grid item
                             sx={{
-                                display: 'inline-flex',
+                                
                                 justifyContent: 'center',
-                                width: `${100/3}%`,
+                                width: {
+                                    xs: '100%',
+                                    md: `32.5%`,
+                                },
                             }}
                         >
-                            <Button
+                             <Button
                                 onClick={() => navigate(`/inMemoriam`)}
                                 variant='contained'
                                 size='large'
-                                sx={{
-                                    backgroundColor: `${theme.palette.common.black}}`,
+                                 sx={{
+                                    backgroundColor: `${theme.palette.common.black}`,
+                                    width: "100%",
+                                    borderColor: theme.palette.primary.light,
+                                    borderWidth: .2,
+                                     borderStyle: 'solid',
+                                    boxShadow: `2px 3px 5px ${theme.palette.secondary.main}}`,
                                 }}
                             >
                                 <Typography color='white'> Memorial</Typography>
                             </Button>
-                        </Box>
-                        <Box
+                        </Grid>
+                        <Grid item
                             sx={{
-                                display: 'inline-flex',
+                                
                                 justifyContent: 'center',
-                                 width: `${100/3}%`,
+                               width: {
+                                    xs: '100%',
+                                    md: `32.5%`,
+                                },
                             }}
                         >
                             <Button
@@ -798,32 +859,48 @@ const GuestDashboard = () => {
                                 size='large'
                                 sx={{
                                     backgroundColor: `${theme.palette.common.black}`,
+                                    width: "100%",
+                                    borderColor: theme.palette.primary.light,
+                                    borderWidth: .2,
+                                    borderStyle: 'solid',
+                                     boxShadow: `2px 3px 5px ${theme.palette.secondary.main}}`,
                                 }}
                             >
                                 <Typography color='white'>
-                                    Ver invitacion de nuevo
+                                    Ver invitación de nuevo
                                 </Typography>
                             </Button>
-                            
-                        </Box>
-                        <Box sx={{ width: `${100/3}%`, display: 'inline-flex', justifyContent: 'center'}}
+                        </Grid>
+                        <Grid item
+                            sx={{
+                                width: {
+                                    xs: '100%',
+                                    md: `${100 / 3}%`,
+                                },
+                               
+                                justifyContent: 'center',
+                            }}
                         >
                             <Button
                                 variant='contained'
                                 size='large'
-                                sx={{
+                                 sx={{
                                     backgroundColor: `${theme.palette.common.black}`,
+                                    width: "100%",
+                                    borderColor: theme.palette.primary.light,
+                                    borderWidth: .2,
+                                     borderStyle: 'solid',
+                                     boxShadow: `2px 3px 5px ${theme.palette.secondary.main}}`,
+                                    
                                 }}
                                 onClick={() => {
-                                navigate("/")
-                            }
-                             }>
-                                <Typography color='white'>
-                                    Salir
-                               </Typography>
+                                    navigate('/');
+                                }}
+                            >
+                                <Typography color='white'>Salir</Typography>
                             </Button>
-                        </Box>
-                    </Box>
+                        </Grid>
+                    </Grid>
                 </Container>
             </Box>
             <FamilyModal

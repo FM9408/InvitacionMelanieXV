@@ -13,11 +13,13 @@ export function CardMensaje ({ m }) {
     const {familias} = useSelector((state) => state.familias)
     const theme = useTheme();
     const dispatch = useDispatch();
-    async function deleteHandle() {
+    async function deleteHandle () {
+        const answer = globalThis.confirm("¿Seguro que quieres borrar este mensaje?")
         try {
-            dispatch(deleteMensajeofDB(m.id));
+            answer === true ? await dispatch(deleteMensajeofDB(m.id)) : null
+            
         } catch (error) {
-            console.error(error);
+            document.dispatchEvent("error", error)
         }
     }
     React.useEffect(() => {
@@ -25,7 +27,7 @@ export function CardMensaje ({ m }) {
             const familia = familias.find((f) => f.id === m.familia_Id);
             setSender(familia.apellido)
         }
-    }, []);
+    }, [familias, m.apellido, m.familia_Id]);
 
     return (
         <Box

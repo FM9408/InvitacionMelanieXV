@@ -37,6 +37,7 @@ socket.on('connect_error', (error) => {
         'color: #f44336; font-weight: bold;',
         error.message
     );
+    document.dispatchEvent(new Event('socketError'));
 });
 
 socket.on('disconnect', (reason) => {

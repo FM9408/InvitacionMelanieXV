@@ -62,7 +62,7 @@ const buttonsArray = [
                 .finally(() => {
                     globalThis.location.href = '/';
                 })
-                .catch((error) => console.log(error)),
+                .catch((error) => document.dispatchEvent("error", error)),
         icon: <Logout sx={{ fontSize: '1.5rem', mr: -2 }} />,
     },
 ];

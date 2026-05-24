@@ -34,51 +34,94 @@ const LoginModal = ({ open, handleClose }) => {
     const [error, setError] = React.useState({
         email: {
             hasError: false,
-        message: ""
+            message: ""
+        },
+        password: {
+            hasError: false,
+            message: ""
         }
     });
     const handleChange = (e) => {
         setCredentials({ ...credentials, [e.target.name]: e.target.value });
     };
 
-    async function handleSubmit(e) {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        try {
-            const user = await login(credentials.email, credentials.password);
-           globalThis.sessionStorage.setItem('user', JSON.stringify(user))
+       
+        login(credentials.email, credentials.password).then((user) => {
+            globalThis.sessionStorage.setItem('user', JSON.stringify(user));
+        }).catch((err) => {
             
-        } catch (error) {
-             console.log(error.code)
-                setCredentials({
-                    email: '',
-                    password: '',
+            const cleanTimeout =setTimeout(() => {
+                setError({
+                    email: {
+                        hasError: false,
+                        message: ""
+                    },
+                    password: {
+                        hasError: false,
+                        message: ""
+                    }
                 });
-                if (error.code === 'auth/user-not-found') {
+            }, 3000)
+            switch (err.message) {
+                case 'Contraseña incorrecta':
                     setError({
                         email: {
-                            
+                            hasError: false,
+                            message: ""
+                        },
+                        password: {
                             hasError: true,
-                            message: 'Ese usario no existe',
+                            message: "Contraseña incorrecta"
                         }
-                        
                     });
-                }
-                if (error.code === 'auth/wrong-password') {
+                   return () => clearTimeout(cleanTimeout);
+                case 'Email incorrecto':
                     setError({
-                        
+                        password: {
+                            hasError: false,
+                            message: ""
+                        },
+                        email: {
                             hasError: true,
-                            message: 'Contraseña incorrecta',
-                        
+                            message: "Email incorrecto"
+                        }
                     });
-                }
-        }
+                    return () => clearTimeout(cleanTimeout);
+                default:
+                    console.error(error);
+                    break;
+
+            }
+
+           
+        }).finally(() => {
+            setCredentials({ email: '', password: '' });
+        })
+    }
             
         
-               
-           
 
-        // Aquí iría tu lógica de Firebase o API
-    };
+                // if (error.code === 'auth/user-not-found') {
+                //     setError({
+                //         email: {
+                            
+                //             hasError: true,
+                //             message: 'Ese usario no existe',
+                //         }
+                        
+                //     });
+                // }
+                // if (error.code === 'auth/wrong-password') {
+                //     setError({
+                        
+                //             hasError: true,
+                //             message: 'Contraseña incorrecta',
+                        
+                //     });
+                // }
+       
    
     return (
         <Modal open={open} onClose={handleClose}>
@@ -105,7 +148,9 @@ const LoginModal = ({ open, handleClose }) => {
                         name='email'
                         color={error.email.hasError ? "error" : "primary"}
                         error={error.email.hasError}
-                        helperText={error.email.message}
+                        helperText={error.email.message ? error.email.message : null}
+                        value={credentials.email}
+                        type='email'
                         variant='outlined'
                         margin='normal'
                         required
@@ -115,9 +160,10 @@ const LoginModal = ({ open, handleClose }) => {
                         fullWidth
                         label='Contraseña'
                         name='password'
+                        color={error.password.hasError ? "error" : "primary"}
                         value={credentials.password}
-                        error={error.hasError}
-                        helperText={error.message}
+                        error={error.password.hasError}
+                        helperText={error.password.message ? error.password.message : null}
                         type={showPassword ? 'text' : 'password'}
                         variant='outlined'
                         margin='normal'

@@ -9,14 +9,14 @@ export const auth = firebaseAuth.getAuth(firebaseApp);
 
 
 
-// if (import.meta.env.MODE === "development") {
-//     firebaseAuth.connectAuthEmulator(auth, "http://localhost:9099", {
-//         disableWarnings: true
-//     });
-// }
+if (import.meta.env.MODE === "development") {
+    firebaseAuth.connectAuthEmulator(auth, "http://localhost:9099", {
+        disableWarnings: true
+    });
+}
 
 
-export async function login(email, password) {
+export async function login (email, password) {
     try {
         const userCredential = await firebaseAuth.signInWithEmailAndPassword(
             auth,
@@ -26,12 +26,23 @@ export async function login(email, password) {
         const user = userCredential.user;
         
         return user;
-    } catch (err) {
-        console.error(err)
-        const error = {
-            code: err.code
-        }
-        throw new Error(error)
+    } catch (error) {
+        switch (error.code) {
+            case "auth/wrong-password":
+                throw new Error("Contraseña incorrecta");
+
+                
+            case "auth/user-not-found":
+                throw new Error("Email incorrecto");
+
+                
+            default:
+                throw new Error("Error al iniciar sesión");
         
+
+        
+           
+        
+        }
     }
 }
