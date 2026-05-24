@@ -17,10 +17,11 @@ import { fetchInvitados } from './store/slices/adminSlice';
 import { setFamilias } from './store/slices/familiesSlice.js';
 import { setMesasData } from './store/slices/mesasSlice';
 import { useSelector, useDispatch } from 'react-redux';
-import { setAdmin } from './store/slices/authSlice';
+import { setAdmin, setUser } from './store/slices/authSlice';
 import { ThemeContext } from '@emotion/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './App.css';
+import { setInvitado } from './store/slices/invitationSlice.js';
 
 export const renderMesasData = ({ dispatch, familias }) => {
     // Procesamiento en un solo ciclo (O(n))
@@ -46,7 +47,8 @@ const mensajesFetch = async ({ dispatch }) => {
 
 function App() {
     const { mensajes } = useSelector((state) => state.mensajes);
-
+    const storagedUser = globalThis.sessionStorage.getItem('user');
+    const parsedUser = JSON.parse(storagedUser)
     const dispatch = useDispatch();
     const { user, isAdmin } = useSelector((state) => state.auth);
     const { familias } = useSelector((state) => state.familias);
@@ -187,18 +189,26 @@ useEffect(() => {
         if (familias.length !== invitados.length) {
             dispatch(setFamilias(invitados));
         }
-        if (!isAdmin && globalThis.location.pathname.startsWith('/admin')) {
-            navigate('/');
-        } else if (isAdmin && globalThis.location.pathname === '/') {
-            navigate('/admin/dashboard');
-        }
+        if (location.pathname.startsWith("/inMemoriam")) {
+        return
+    } else if (!isAdmin && globalThis.location.pathname.startsWith('/admin')) {
+        navigate('/');
+    } else if (isAdmin && globalThis.location.pathname === '/') {
+        navigate('/admin/dashboard');
+    
+    }
+    else if (parsedUser && location.pathname.endsWith("/dashboard")) {
+         dispatch(setInvitado(parsedUser))
+         dispatch(setUser(parsedUser))
+     }
+
     }, [
         familias,
         dispatch,
         invitados,
+       
+       
         isAdmin,
-        mensajes.length,
-        error,
         navigate,
     ]);
 
@@ -232,7 +242,7 @@ useEffect(() => {
     });
     if (isAuthChecking) return null;
     return (
-        <UserContext.Provider value={user.user}>
+        <UserContext.Provider value={user?.user}>
             <ThemeContext.Provider value={theme}>
                 <Box sx={boxStyles}>
                     <Alert

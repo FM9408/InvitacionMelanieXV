@@ -38,6 +38,13 @@ const typography = {
         fontSize: pxToRem(40),
         ...responsiveFontSizes({ sm: 52, md: 58, lg: 64 }),
     },
+    alertFont: {
+        fontWeight: 800,
+        lineHeight: 80 / 55,
+        fontSize: pxToRem(53),
+        ...responsiveFontSizes({ sm: 50, md: 50, lg: 54 })
+
+    },
     h2: {
         fontWeight: 800,
         lineHeight: 64 / 48,

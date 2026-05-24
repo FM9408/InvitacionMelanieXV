@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, Typography, Container, Stack, Grid, useTheme } from '@mui/material';
+import { Box, Typography, Container, Stack, Grid } from '@mui/material';
 import { useScroll, useTransform, motion } from 'framer-motion';
 import { Video } from '@videojs/react/video';
 import { useNavigate } from 'react-router-dom';
@@ -120,7 +120,6 @@ MarcoDorado.propTypes = {
 
 export const InvitacionNarrativa = () => {
     const { images } = useSelector((state) => state.images);
-    const theme = useTheme();
     const mainAudio = useRef(
         new Audio(images.afterTheMascarade)
     );

@@ -32,6 +32,7 @@ import BuscarModeDashBoard from '../../modules/Admin/buscarModeDashboard';
 import ConfirmarModeDashboard from '../../modules/Admin/confirmarModeDasbord';
 import AñadirModeDashboard from '../../modules/Admin/añadirModeDashboard';
 import { setUser } from '../../store/slices/authSlice';
+import { setInvitado } from '../../store/slices/invitationSlice';
 
 const FamilyModal = ({
     open,
@@ -43,7 +44,7 @@ const FamilyModal = ({
     invitadosList,
     setHasOpened,
 }) => {
-    const { familias } = useSelector((state) => state.familias.familias);
+  
 const dispatch  = useDispatch();
     const { user } = useSelector((state) => state.auth);
     const { datos } = useSelector((state) => state.invitado);
@@ -61,9 +62,10 @@ const dispatch  = useDispatch();
 
     // Resetear o cargar datos al abrir
    useEffect(() => {
-    // 1. Redirección si no hay miembros en confirmación
-    if (mode === 'Confirmar' && datos.miembros.length === 0) {
-        navigate('/');
+    //1. Redirección si no hay miembros en confirmación
+       if (mode === 'Confirmar' && datos.miembros.length === 0) {
+           setInvitado(JSON.parse(globalThis.sessionStorage.getItem('user')));
+           
     }
     
     // 2. Cargar los datos de edición AL ENTRAR (No en el return)
@@ -76,7 +78,7 @@ const dispatch  = useDispatch();
     }
     
     // Eliminamos el return ruidoso para evitar el bucle infinito
-}, [initialData, open, mode, datos.miembros.length, navigate]);
+}, [initialData, open, mode, datos, navigate]);
     // Manejadores para el modo Registro
     const addMember = () => {
         setFamilyData({
@@ -177,13 +179,22 @@ const dontAssistHandler = (miembro) => {
     };
 
     const disableHandler  = React.useMemo(() => {
-        for (const invitado of familyData.invitados) {
-            if (invitado.nombre === '') {
-                return true;
-            }
-        }
-        return false;
-    },[familyData.invitados])
+        switch (mode) {
+            case 'Editar':
+                for (const invitado of familyData.invitados) {
+                    if (invitado.nombre === '') {
+                        return true;
+                    }
+                }
+                return false;
+        
+            case "Buscar":
+                 return search.length === 0;
+            default:
+                return false;
+        
+        }            
+    },[familyData.invitados, mode, search.length])
     
 
 
@@ -365,16 +376,7 @@ const dontAssistHandler = (miembro) => {
                                 <Grid container direction='row'>
                                     <Grid item sx={{ width: globalThis.location.pathname.includes('/admin') ? '100%' :'70%' }}>
                                         <Button
-                                            disabled={
-                                                mode === 'Buscar' ?
-                                                search.length === 0 
-                                               : mode === 'Editar' ? 
-                                                     disableHandler  
-                                                        : false
-                                               
-                                            
-                                                
-                                            }
+                                            disabled={disableHandler}
                                             fullWidth
                                             variant='contained'
                                             startIcon={

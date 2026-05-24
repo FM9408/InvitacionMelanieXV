@@ -14,9 +14,9 @@ import MesasDrawer from '../components/measaDrawer';
 import { polyfill } from 'mobile-drag-drop';
 import 'mobile-drag-drop/default.css';
 
-if (typeof window !== 'undefined') {
+if (typeof globalThis !== 'undefined') {
     const isTouchDevice =
-        'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        'ontouchstart' in globalThis || navigator.maxTouchPoints > 0;
     if (isTouchDevice) {
         polyfill({
             dragImageTranslateOverride: (event, hoverTarget, computedStyle) => {

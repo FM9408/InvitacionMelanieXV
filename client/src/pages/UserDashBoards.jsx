@@ -24,9 +24,11 @@ import {
     Celebration,
 } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
+import AlertaAsistencia from '../modules/alertModal.jsx';
 import { sendMensaje } from '../store/slices/mensajesSlice.jsx';
 import { useNavigate } from 'react-router-dom';
 import FamilyModal from '../components/FamilyModal/FamilyModal.jsx';
+import { setUser } from '../store/slices/authSlice.js';
 
 const mensajes = [
     'No olvides escribir tus buenos deseos para la quinceañera en la sección de mensajes!',
@@ -57,18 +59,23 @@ const GuestDashboard = () => {
     const { user } = useSelector((state) => state.auth);
     const [modalOpen, setModalOpen] = useState(false);
     const [hasOpened, setHasOpened] = useState(false);
+    const [alertOpen, setALertOpen] = React.useState(false);
     const [miembros, setMiembros] = React.useState([]);
     // Estado para los miembros
     const [effct, setEffct] = React.useState('');
-
+    
     // Estado para el mensaje
     const [mensaje, setMensaje] = useState('');
-
+    
     const [info, setInfo] = useState({
         id: '',
         nombre: '',
         mesa: '',
     });
+    
+    
+    
+   
     React.useEffect(() => {
         // Función recursiva con timeouts dinámicos para manejar los tiempos asimétricos
         const runSequence = () => {
@@ -114,13 +121,23 @@ const GuestDashboard = () => {
 
         setMensaje('');
     };
-    const storagedUser = user;
-    const id = user.id;
+    const storagedUser = globalThis.sessionStorage.getItem('user')
+    const parsedUser = JSON.parse(storagedUser);
+    const id = parsedUser?.id;
 
+  React.useEffect(() => {
+    if (parsedUser) {
+        if (!user?.id || user.id !== id) {
+            dispatch(setUser(parsedUser));
+        }
+    }
+}, [parsedUser, dispatch, id, user?.id]);
     React.useEffect(() => {
-        const apellido = user.apellido;
-        const mesa = user.mesa;
+        const confirmaciones = miembros.map((miembro) => miembro.willAssist)
+        const apellido = user?.apellido;
+        const mesa = user?.mesa;
 
+       
         setInfo({
             nombre: apellido,
             mesa: mesa,
@@ -129,7 +146,7 @@ const GuestDashboard = () => {
 
         setEffct(effects[setEffectHandle()]);
         // SOLUCIÓN: Sincronizar el estado local cada vez que el "user" de Redux mute
-        const invitados = user.miembros || [];
+        const invitados = user?.miembros || [];
         setMiembros(invitados);
 
         // Control de mesas asignadas basado en el objeto actualizado
@@ -140,25 +157,25 @@ const GuestDashboard = () => {
             }
         });
         setIsMesaAssign(asignada);
-
+       
         const interval = setInterval(() => {
             // ... tu lógica de intervalos de mensajes
             setEffct(effects[setEffectHandle()]);
         }, 20000);
-
-        return () => {
+        setALertOpen(confirmaciones.includes('Confirmada'))
+        return () => { 
             clearInterval(interval);
         };
         // Agregamos user.miembros a las dependencias para que el efecto se ejecute al cambiar los datos
     }, [
+      
         
-        storagedUser,
         hasOpened,
         modalOpen,
         user,
-        user.miembros,
+      
         effct,
-        id,
+        
     ]);
 
     return (
@@ -894,6 +911,10 @@ const GuestDashboard = () => {
                                     
                                 }}
                                 onClick={() => {
+                                    globalThis.sessionStorage.clear()
+                                    dispatch(setUser({
+                                        id:""
+                                    }));
                                     navigate('/');
                                 }}
                             >
@@ -910,6 +931,13 @@ const GuestDashboard = () => {
                 }}
                 mode='Confirmar'
                 setHasOpened={setHasOpened}
+            />
+            <AlertaAsistencia
+                tieneConfirmacion={alertOpen}
+                setModalOpen={setModalOpen}
+                onClose={() => {
+                    setALertOpen(false);
+                }}
             />
         </Box>
     );

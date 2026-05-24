@@ -41,14 +41,10 @@ const InMemoriam = () => {
     const theme = useTheme();
     const { images } = useSelector((state) => state.images);
     const user= useSelector((state) => state.auth.user);
-    const userStored = globalThis.sessionStorage.getItem('user');
-    const parsedUser = JSON.parse(userStored);
-    const {isAdmin} = useSelector((state) => state.auth)
     const navigate = useNavigate();
     const music = React.useRef(new Audio(images.corazonDeNino))
     
     React.useEffect(() => {
-       globalThis.sessionStorage.setItem('user', JSON.stringify(user))
         music.current.loop = true
         music.current.currentTime = 0
         music.current.preload = true
@@ -58,7 +54,7 @@ const InMemoriam = () => {
             music.current.play()
         }, 2000)
         
-    },[images, datos])
+    },[images, datos, user])
     return (
         <Box sx={{backgroundColor:"#000"}}>
             <Box sx={{ py: 12, color:theme.palette.common.white, textAlign: 'center', width:"100%",  height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', backgroundImage: `url(${images.inMemoriam})`, backgroundSize: 'cover', backgroundPosition: 'center', position:"relative" }}>
