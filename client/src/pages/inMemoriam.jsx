@@ -40,8 +40,7 @@ const InMemoriam = () => {
     const { datos } = useSelector((state) => state.invitado);
     const theme = useTheme();
     const { images } = useSelector((state) => state.images);
-    const user = globalThis.localStorage.getItem('user');
-    const parsedUser = JSON.parse(user);
+    const user= useSelector((state) => state.auth.user);
     const navigate = useNavigate();
     const music = React.useRef(new Audio(images.corazonDeNino))
     
@@ -55,9 +54,10 @@ const InMemoriam = () => {
             music.current.play()
         }, 2000)
         
-    },[images, datos])
+    },[images, datos, user])
     return (
-        <Container maxWidth="lg" sx={{ py: 12, color:theme.palette.common.white, textAlign: 'center', width:"100%",  height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', backgroundImage: `url(${images.inMemoriam})`, backgroundSize: 'cover', backgroundPosition: 'center', position:"relative" }}>
+        <Box sx={{backgroundColor:"#000"}}>
+            <Box sx={{ py: 12, color:theme.palette.common.white, textAlign: 'center', width:"100%",  height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', backgroundImage: `url(${images.inMemoriam})`, backgroundSize: 'cover', backgroundPosition: 'center', position:"relative" }}>
             <motion.div
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
@@ -66,7 +66,7 @@ const InMemoriam = () => {
                 <IconButton onClick={() => {
                     music.current.pause();
                     music.current.currentTime = 0;
-                    navigate(`/user/${parsedUser.id}/dashboard`);
+                    navigate(-1)
                 }} sx={{ position: "absolute", top: 20, left: 20, color: theme.palette.common.white }} href="/">
                     <Backspace />
                 </IconButton>
@@ -107,7 +107,8 @@ const InMemoriam = () => {
                 </Box>
                 </Box>
             </motion.div>
-        </Container>
+        </Box>
+        </Box>
     );
 };
 

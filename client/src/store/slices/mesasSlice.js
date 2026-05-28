@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 
+
 function fasterRender (state, familias) {
      const _mapping = {};
      const _sinMesa = [];
@@ -8,8 +9,9 @@ function fasterRender (state, familias) {
          if (!familia.miembros) continue;
 
          for (const miembro of familia.miembros) {
+             if(miembro.willAssist === "Rechazada") continue
              const m = miembro.mesa;
-             if (!m || m === 0) {
+             if (!m || m === 0 && miembro.willAssist === 'Confirmado') {
                  _sinMesa.push(miembro);
              } else {
                  if (!_mapping[m]) _mapping[m] = [];

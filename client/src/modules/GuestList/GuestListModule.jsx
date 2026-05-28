@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
     Table,
     TableBody,
@@ -23,16 +23,15 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { LoadingCircle } from '../../components/Decorations/LoadingCircle';
 import {
     deleteFamilia,
-    deleteFamiliaLocal,
+    deleteFamiliaFromDB,
+    setCurrentUser,
 } from '../../store/slices/adminSlice';
+import { actualizarFamilia } from '../../store/slices/familiesSlice';
 import FamilyModal from '../../components/FamilyModal/FamilyModal';
 
-const GuestListModule = () => {
+const GuestListModule = ({ invitados = [] }) => {
     const dispatch = useDispatch();
-
     // Selectores de Redux
-    const { invitados } = useSelector((state) => state.admin);
-
     // Estados locales
     const [progress, setProgress] = useState(0);
     const [loadingInfo, setLoadingInfo] = useState(true);
@@ -55,14 +54,19 @@ const GuestListModule = () => {
 
     // --- Manejadores de Acciones ---
     const handleEdit = (familia) => {
+        dispatch(
+            setCurrentUser(invitados.find((family) => family.id === familia.id))
+        );
+
         setModalConfig({ open: true, data: familia });
     };
 
     const handleDelete = (id) => {
         // Confirmación simple antes de borrar (Perfeccionismo)
+        const conserve = globalThis.confirm('¿Quieres conservar los mensajes?');
         if (globalThis.confirm('¿Estás seguro de eliminar esta familia?')) {
             dispatch(deleteFamilia(id));
-            dispatch(deleteFamiliaLocal(id));
+            dispatch(deleteFamiliaFromDB({ id, conserve }));
             // No es necesario fetchInvitados aquí si tu backend emite un socket
             // que App.jsx ya escucha para refrescar la lista.
         }
@@ -79,11 +83,19 @@ const GuestListModule = () => {
                 return 'error';
         }
     };
-
+    const saveEdition = (familyData) => {
+        try {
+            dispatch(actualizarFamilia(familyData));
+            setModalConfig({ open: false, data: null });
+            setProgress(0);
+        } catch (error) {
+            throw new Error(error);
+        }
+    };
     return (
         <Box sx={{ width: '100%', overflow: 'hidden' }}>
             {loadingInfo ?
-                <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                     <LoadingCircle
                         progress={progress}
                         setProgress={setProgress}
@@ -92,7 +104,7 @@ const GuestListModule = () => {
             :   <TableContainer
                     component={Paper}
                     elevation={0}
-                    sx={{ maxHeight: '70vh' }}
+                    sx={{ maxHeight: '70vh', width: '100%' }}
                 >
                     <Table stickyHeader size='small'>
                         <TableHead>
@@ -127,7 +139,7 @@ const GuestListModule = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {invitados.map((guest) => (
+                            {invitados?.map((guest) => (
                                 <TableRow key={guest.id} hover>
                                     <TableCell
                                         sx={{
@@ -170,7 +182,7 @@ const GuestListModule = () => {
                                             spacing={0.5}
                                             justifyContent='center'
                                         >
-                                            {guest.miembros.map((member) => (
+                                            {guest?.miembros?.map((member) => (
                                                 <Grid
                                                     item
                                                     key={member.id}
@@ -239,6 +251,7 @@ const GuestListModule = () => {
                 <FamilyModal
                     initialData={modalConfig.data}
                     onClose={() => setModalConfig({ open: false, data: null })}
+                    onSave={saveEdition}
                     open={modalConfig.open}
                     mode='Editar'
                 />

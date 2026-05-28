@@ -3,7 +3,6 @@ const connectionEmitter = require('../../config/emmiter.js')
 
 
 
-
 async function createNewMensaje(req, res) {
     const { mensaje } = req.body
     const { familiaID } = req.params
@@ -34,6 +33,7 @@ async function createNewMensaje(req, res) {
                 mensaje,
                 apellido: getFamily.apellido,
                 familia_Id: familiaID,
+                enviado: Date.now()
             },
             { transaction: t, include: { all: true, nested: true } }
         );
@@ -42,7 +42,11 @@ async function createNewMensaje(req, res) {
         
         await t.commit()
         await getFamily.addMensaje(newMessage)
-        connectionEmitter.emit('mensajeCreado', newMessage);
+        
+        req.io.to('/Admins').emit('newMensajeCreado', newMessage);
+        connectionEmitter.emit('crearNotificacion', {
+            mensaje: `La familia ${getFamily.apellido} ha enviao un mensaje`,
+        });
   
         res.status(201).json({
             mensaje: 'Mensaje creado correctamente'
@@ -96,8 +100,8 @@ async function deleteMensaje(req, res) {
                 nested: true
             }
         });
+        req.io.to("/Admins").emit('newMensajeEliminado', mensaje)
         await familia.removeMensaje(mensaje);
-        connectionEmitter.emit('mensajeEliminado', mensaje)
         await mensaje.destroy();
         res.status(200).json({
             mensaje: 'Mensaje eliminado correctamente'

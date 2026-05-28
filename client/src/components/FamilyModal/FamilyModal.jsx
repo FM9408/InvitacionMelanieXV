@@ -16,14 +16,11 @@ import {
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import AdminLogInButton from '../logInButton';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
-    Add,
-    Delete,
+   
     Save,
     Send,
-    CheckCircle,
-    Cancel,
     PersonSearch,
 } from '@mui/icons-material';
 import { bool, string, object, func } from 'prop-types';
@@ -34,6 +31,8 @@ import EditModeDashBoard from '../../modules/Admin/editModeDashboard';
 import BuscarModeDashBoard from '../../modules/Admin/buscarModeDashboard';
 import ConfirmarModeDashboard from '../../modules/Admin/confirmarModeDasbord';
 import AñadirModeDashboard from '../../modules/Admin/añadirModeDashboard';
+import { setUser } from '../../store/slices/authSlice';
+import { setInvitado } from '../../store/slices/invitationSlice';
 
 const FamilyModal = ({
     open,
@@ -45,6 +44,9 @@ const FamilyModal = ({
     invitadosList,
     setHasOpened,
 }) => {
+  
+const dispatch  = useDispatch();
+    const { user } = useSelector((state) => state.auth);
     const { datos } = useSelector((state) => state.invitado);
     const navigate = useNavigate();
     const [hovered, setHovered] = useState(0);
@@ -59,20 +61,24 @@ const FamilyModal = ({
     });
 
     // Resetear o cargar datos al abrir
-    useEffect(() => {
-        if (mode === 'Confirmar' && datos.miembros.length === 0) {
-            navigate('/');
-        }
-        return () => {
-            if (mode === 'Editar') {
-                setFamilyData({
-                    nombreFamilia: initialData.apellido,
-                    invitados: initialData.miembros,
-                });
-            }
-        };
-    }, [initialData, open, mode, datos.miembros.length, navigate]);
-
+   useEffect(() => {
+    //1. Redirección si no hay miembros en confirmación
+       if (mode === 'Confirmar' && datos?.miembros.length === 0) {
+          
+           
+    }
+    
+    // 2. Cargar los datos de edición AL ENTRAR (No en el return)
+    if (mode === 'Editar' && initialData) {
+        setFamilyData({
+            nombreFamilia: initialData.apellido,
+            invitados: initialData.miembros,
+            id: initialData.id
+        });
+    }
+    
+    // Eliminamos el return ruidoso para evitar el bucle infinito
+}, [initialData, open, mode, datos, navigate]);
     // Manejadores para el modo Registro
     const addMember = () => {
         setFamilyData({
@@ -81,14 +87,27 @@ const FamilyModal = ({
         });
     };
 
-    const assistHandler = (miembro) => {
-        setWontAssist(wontAssist.filter((member) => member !== miembro.id));
-        const arrayHandler = willAssist.filter(
-            (member) => member === miembro.id
-        );
-        setWillAssist(arrayHandler);
-        setWillAssist([...willAssist, miembro.id]);
-    };
+const assistHandler = (miembro) => {
+    // 1. Lo removemos del array de los que NO asisten si es que estaba ahí
+    setWontAssist(wontAssist.filter((member) => member !== miembro.id));
+    
+    // 2. Lo agregamos al array de los que SÍ asisten, evitando duplicados de ID de forma limpia
+    setWillAssist((prev) => {
+        if (prev.includes(miembro.id)) return prev;
+        return [...prev, miembro.id];
+    });
+};
+
+const dontAssistHandler = (miembro) => {
+    // 1. Lo removemos del array de los que SÍ asisten si es que estaba ahí
+    setWillAssist(willAssist.filter((member) => member !== miembro.id));
+    
+    // 2. Lo agregamos al array de los que NO asisten de forma segura
+    setWontAssist((prev) => {
+        if (prev.includes(miembro.id)) return prev;
+        return [...prev, miembro.id];
+    });
+};
 
     const onHoverHandler = () => {
         setHovered(360);
@@ -97,35 +116,90 @@ const FamilyModal = ({
         setHovered(0);
     };
 
-    const dontAssistHandler = (miembro) => {
-        setWillAssist(willAssist.filter((member) => member !== miembro.id));
-        const arrayHandler = wontAssist.filter(
-            (member) => member === miembro.id
-        );
-        setWontAssist(arrayHandler);
-        setWontAssist([...wontAssist, miembro.id]);
-    };
+   
     function confirmationHandler() {
         setConfirmation(willAssist, wontAssist);
         navigate(`/user/${datos.id}/dashboard`);
+        const miembrosActualizados = user.miembros.map((miembro) => {
+            if (willAssist.includes(miembro.id)) {
+                return { ...miembro, willAssist: "Confirmado" }; // Ajusta si tu BD usa otro string
+            }
+            if (wontAssist.includes(miembro.id)) {
+                return { ...miembro, willAssist: "Rechazada" };
+            }
+            return miembro;
+        });
+
+        // 4. Estructuramos el nuevo objeto de usuario idéntico al original pero con los cambios
+        const usuarioActualizado = { 
+            ...user, 
+            miembros: miembrosActualizados 
+        };
+
+        // ====================================================
+        // ¡LA FUNCIÓN QUE BUSCABAS PARA EL sessionStorage!
+        // ====================================================
+       
+
+        // 5. Actualizamos Redux en memoria para que el Dashboard cambie al instante sin recargar
+        dispatch(setUser(usuarioActualizado));
         onClose();
     }
 
-    const updateMember = (index, value) => {
-        const newMembers = [...familyData.invitados];
-        newMembers[index].nombre = value;
+    const updateMemberAdd = (index, value) => {
+        if (value === '') return;
+        const newMembers = familyData.invitados.map((item, i) => {
+            if (i === index) {
+                return { ...item, nombre: value };
+            }
+            return item;
+        });
         setFamilyData({ ...familyData, invitados: newMembers });
-    };
-    const setDisablehandler = () => {
-        const bool =
-            datos.miembros.length === willAssist.length + wontAssist.length;
+    }
 
-        return !bool;
-    };
+
+    const updateMember = ({ index, value }) => {
+        
+    // if(value === "") return;
+    
+    // Mapeamos el array y creamos un objeto totalmente nuevo para el índice modificado
+    const newMembers = familyData.invitados.map((item, i) => {
+        if (i === index) {
+            return { ...item, nombre: value }; // Copia el objeto de forma segura y pisa el nombre
+        }
+        return item;
+    });
+
+    setFamilyData({ ...familyData, invitados: newMembers });
+};
+  
     const removeMember = (index) => {
         const newMembers = familyData.invitados.filter((_, i) => i !== index);
         setFamilyData({ ...familyData, invitados: newMembers });
     };
+
+    const disableHandler  = React.useMemo(() => {
+        switch (mode) {
+            case 'Editar':
+                for (const invitado of familyData.invitados) {
+                    if (invitado.nombre === '') {
+                        return true;
+                    }
+                }
+                return false;
+        
+            case "Buscar":
+                 return search.length === 0;
+            default:
+                return false;
+        
+        }            
+    },[familyData.invitados, mode, search.length])
+    
+
+
+
+
 
     return (
         <Dialog
@@ -222,7 +296,7 @@ const FamilyModal = ({
             <DialogContent>
                 {/* MODO REGISTRO: Apellido y lista de miembros */}
                 {mode === 'Añadir' && (
-                   <AñadirModeDashboard addMember={addMember} familyData={familyData} removeMember={removeMember}setFamilyData={setFamilyData}updateMember={updateMember}º/>
+                   <AñadirModeDashboard addMember={addMember} familyData={familyData} removeMember={removeMember}setFamilyData={setFamilyData}updateMember={updateMemberAdd}/>
                 )}
 
                 {/* MODO CONFIRMACIÓN: Checkbox o botones para cada uno */}
@@ -239,16 +313,16 @@ const FamilyModal = ({
                    <SeleccionarModoDashboard invitadosList={invitadosList} onSave={onSave} />
                 )}
                 {mode === 'Editar' && (
-                   <EditModeDashBoard addMember={addMember} familyData={familyData} setFamilyData={setFamilyData} onSave={onSave} onClose={onClose}/>
+                   <EditModeDashBoard addMember={addMember} familyData={familyData} setFamilyData={setFamilyData} updateMember={updateMember} onSave={onSave} onClose={onClose}/>
                 )}
             </DialogContent>
 
             <DialogActions>
                 {mode === 'Añadir' ||
                     (mode === 'Editar' && (
-                        <Button onClick={onClose}>Cancelar</Button>
+                        <Button onClick={onClose} sx={{ width: '30%', textAlign: 'center', backgroundColor:theme.palette.error.main}}><Typography color={theme.palette.common.white} variant='button'>Cancelar</Typography></Button>
                     ))}
-                {mode === 'Confirmar' && (
+                {mode === 'Confirmar' && !globalThis.location.pathname.endsWith("/dashboard") && (
                     <Box
                         onMouseEnter={onHoverHandler}
                         onMouseLeave={onLeaveHandler}
@@ -285,8 +359,8 @@ const FamilyModal = ({
                 {mode === 'Confirmar' ?
                     <Button
                         variant='contained'
-                        sx={{ width: '70%' }}
-                        disabled={setDisablehandler()}
+                        sx={{ width: globalThis.location.pathname.endsWith("/dashboard") ? '100%' :'70%' }}
+                       
                         onClick={() => {
                             confirmationHandler();
                             onClose();
@@ -302,16 +376,13 @@ const FamilyModal = ({
                                 <Grid container direction='row'>
                                     <Grid item sx={{ width: globalThis.location.pathname.includes('/admin') ? '100%' :'70%' }}>
                                         <Button
-                                            disabled={
-                                                search.length === 0 &&
-                                                mode === 'Buscar'
-                                            }
+                                            disabled={disableHandler}
                                             fullWidth
                                             variant='contained'
                                             startIcon={
                                                 mode === 'Buscar' ?
                                                     <PersonSearch />
-                                                :   <Save />
+                                                    : <Save />
                                             }
                                             onClick={() => {
                                                 if (mode === 'Buscar') {
@@ -319,10 +390,16 @@ const FamilyModal = ({
 
                                                     onClose();
                                                 } else if (
-                                                    mode === 'Confirmar'
-                                                ) {
+                                                    mode === 'Confirmar') {
                                                     confirmationHandler();
                                                     onClose();
+                                                }
+                                            
+                                                else if (mode === "Editar") { 
+
+                                                        onSave(familyData)
+                                                    onClose()
+                                        
                                                 } else {
                                                     setFamilyData({
                                                         nombreFamilia: '',
@@ -338,9 +415,12 @@ const FamilyModal = ({
                                         >
                                             {mode === 'Añadir' ?
                                                 'Guardar Familia'
-                                            : mode === 'Buscar' ?
-                                                'Buscar'
-                                            :   'Enviar'}
+                                                : mode === 'Buscar' ?
+                                                    'Buscar'
+                                                    : mode === "Editar" ?
+                                                        'Guardar Cambios'
+                                                        : null
+                                            }
                                         </Button>
                                     </Grid>
                                     <Grid item sx={{ width: '30%' }}>

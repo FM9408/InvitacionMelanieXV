@@ -3,14 +3,16 @@ import Container from '@mui/material/Container'
 import { useNavigate } from 'react-router-dom'
 import React from 'react'
 import Fuse from 'fuse.js'
-import { setUser } from '../store/slices/authSlice'
+import { fetchInvitados } from '../store/slices/adminSlice'
+import { setFamilias } from '../store/slices/familiesSlice'
+import { setUser, } from '../store/slices/authSlice'
 import { setInvitationViewed } from '../hooks/database'
 import { setInvitado } from '../store/slices/invitationSlice'
 import FamilyModal from '../components/FamilyModal/FamilyModal'
 import { useSelector, useDispatch } from 'react-redux'
 
 export default function Homepage() {
-    const { invitados } = useSelector((state) => state.admin)
+    const { invitados, loadingDataAdmin} = useSelector((state) => state.admin)
     const [invitadosList, setInvitadosList] = React.useState([])
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -22,7 +24,7 @@ export default function Homepage() {
     const onClose = () => {
         setModalOpen(false)
     }
-
+   
     const searchHandle = async (info) => {
         
         // 1. Creamos una lista plana de todas las familias para que Fuse pueda buscar
@@ -46,10 +48,8 @@ export default function Homepage() {
         if (results.length === 1) {
             // Tomamos el primer resultado (el más cercano)
             const familiaEncontrada = results[0].item
-            dispatch(setInvitado(familiaEncontrada))
-            globalThis.localStorage.setItem("visited", true);
-            globalThis.localStorage.setItem("user", JSON.stringify(familiaEncontrada));
             dispatch(setUser(familiaEncontrada))
+            dispatch(setInvitado(familiaEncontrada))
             if (familiaEncontrada.hasViewed === false) {
                 setInvitationViewed(familiaEncontrada.id);
                  navigate(`/user/${familiaEncontrada.id}`);
@@ -80,23 +80,31 @@ export default function Homepage() {
         }
     }
 
-    function selectedFamily(e) {
-        setInvitationViewed(e.id)
-        dispatch(setInvitado(e))
-        globalThis.localStorage.setItem("visited", true)
-        globalThis.localStorage.setItem("user", JSON.stringify(e))
-        navigate(`/user/${e.id}`)
-        onClose()
-        setInvitadosList([])
+    function selectedFamily (e) {
+        setInvitationViewed(e.id);
+        dispatch(setInvitado(e));
+        dispatch(setUser(e));
+        if (e.hasViewed === true) {
+            
+            navigate(`/user/${e.id}/dashboard`);
+        } else {
+            navigate(`/user/${e.id}`);
+        }
+        onClose();
+        setInvitadosList([]);
         setError({
             state: false,
             message: ''
-        })
+        });
     }
 
+   
     React.useEffect(() => {
+        if (loadingDataAdmin === true || invitados.length === 0) {
+            dispatch(fetchInvitados());
+        }
+        dispatch(setFamilias(invitados));
         setModalOpen(true)
-        
     }, [modalOpen])
     return (
         <Box

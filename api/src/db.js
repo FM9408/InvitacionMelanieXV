@@ -13,31 +13,31 @@ const {
     NODE_ENV
 } = process.env
 
-const sequelize =
-    NODE_ENV === 'production'
-        ? new Sequelize({
-              protocol: 'postgres',
-              dialect: 'postgres',
-              username: `${DB_USER}`,
-              password: `${DB_PASSWORD}`,
-              host: `${DB_HOST}`,
-              database: `${DB_NAME}`,
-              dialectOptions: {
-                  ssl: false
-              }
-          })
-        : new Sequelize({
-              protocol: 'postgres',
-              dialect: 'postgres',
-              username: `${DB_LOCAL_USER}`,
-              password: `${DB_LOCAL_PASSWORD}`,
-              host: `${DB_LOCAL_HOST}`,
-              database: `${DB_LOCAL_NAME}`,
-              dialectOptions: {
-                  ssl: false
-              }
-          })
+const sequelizeConfig = {
+    protocol: 'postgres',
+    dialect: 'postgres',
+    logging: false, // Desactiva logs de SQL en consola para ganar velocidad
+    pool: {
+        max: 5, // Cloud Run prefiere pocas conexiones por instancia
+        min: 0,
+        acquire: 30000,
+        idle: 10000,
+    },
+    dialectOptions: {
+        ssl: false,
+    },
+};
 
+const sequelize =
+    NODE_ENV === 'production' ?
+        new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
+            host: DB_HOST,
+            ...sequelizeConfig,
+        })
+    :   new Sequelize(DB_LOCAL_NAME, DB_LOCAL_USER, DB_LOCAL_PASSWORD, {
+            host: DB_LOCAL_HOST,
+            ...sequelizeConfig,
+        });
 const basename = path.basename(__filename)
 
 const modelDefiners = []
@@ -66,7 +66,7 @@ sequelize.models = Object.fromEntries(capsEntries)
 
 // En sequelize.models están todos los modelos importados como propiedades
 // Para relacionarlos hacemos un destructuring
-const { Invitado, Familia, Mensaje } = sequelize.models
+const { Invitado, Familia, Mensaje, Notificacion } = sequelize.models;
 
 Familia.hasMany(Invitado, { as: 'miembros', foreignKey: 'familia_Id' })
 Invitado.belongsTo(Familia, { foreignKey: 'familia_Id' })

@@ -1,46 +1,56 @@
-import React, { useMemo, useEffect, useCallback } from 'react';
+import React, { useMemo, useEffect, useCallback, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
+
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import MesaCirculo from '../components/mesacirculo';
 import MesasDrawer from '../components/measaDrawer';
 
-// Importa tus acciones
+// IMPORTACIÓN DEL POLYFILL CONDICIONAL PARA MÓVILES
+import { polyfill } from 'mobile-drag-drop';
+import 'mobile-drag-drop/default.css';
+
+if (typeof globalThis !== 'undefined') {
+    const isTouchDevice =
+        'ontouchstart' in globalThis || navigator.maxTouchPoints > 0;
+    if (isTouchDevice) {
+        polyfill({
+            dragImageTranslateOverride: (event, hoverTarget, computedStyle) => {
+                return { x: 0, y: 0 };
+            },
+        });
+    }
+}
+
+import { setMesasData } from '../store/slices/mesasSlice';
 import {
-    setSinMesas,
-    setMesasData,
-} from '../store/slices/mesasSlice';
-import { updateMiembroMesa, assignarMesas } from '../store/slices/familiesSlice';
+    updateMiembroMesa,
+    assignarMesas,
+    setFamilias,
+} from '../store/slices/familiesSlice';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
+import { setInvitados } from '../store/slices/adminSlice';
+import { setError } from '../store/slices/mensajesSlice';
 
 /**
  * VISTA 1: Plano General
- * Optimizada para evitar cálculos redundantes
  */
-export const SeatingChart = () => {
+export function SeatingChart() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
+
     const { familias } = useSelector((state) => state.familias);
+    const { invitados } = useSelector((state) => state.admin);
     const { mesasData } = useSelector((state) => state.mesas);
 
-    // Memorizamos el mapeo para que solo se calcule SI cambian las familias
-    useMemo(() => {
-       
-        // Procesamiento en un solo ciclo (O(n))
-        dispatch(setMesasData(familias));
-        
-           
-    }, [familias, dispatch]);
-
-    // Sincronización atómica
     useEffect(() => {
-        
-        
-    }, [dispatch, mesasData]);
+        dispatch(setMesasData(familias));
+    }, [familias, dispatch]);
 
     return (
         <Box sx={{ p: 4, bgcolor: '#f5f5f5', minHeight: '100vh' }}>
@@ -129,12 +139,27 @@ export const SeatingChart = () => {
                         alignItems='center'
                     >
                         <Grid item>
-                            <Button onClick={() => dispatch(assignarMesas(familias))} variant='contained'>Guardar cambios</Button>
+                            <Button
+                                onClick={() => {
+                                   
+                                    dispatch(assignarMesas(familias));
+                                }}
+                                variant='contained'
+                            >
+                                Guardar cambios
+                            </Button>
                         </Grid>
                         <Grid item>
                             <Button
                                 variant='contained'
-                                onClick={() => navigate(-1)}
+                                onClick={async () => {
+                                    try {
+                                        dispatch(setFamilias(invitados));
+                                        dispatch(setMesasData(invitados));
+                                    } catch (error) {
+                                        setError()
+                                    }
+                                }}
                             >
                                 Descartar Cambios
                             </Button>
@@ -144,105 +169,161 @@ export const SeatingChart = () => {
             </Grid>
         </Box>
     );
-};
+}
 
 /**
- * VISTA 2: Asignación Individual
- * Con Draggable optimizado
+ * VISTA 2: Asignación Individual (REDISEÑADA PARA SE TRADUZCA EXCELENTE EN MÓVIL)
  */
 export const TableAssignment = () => {
     const { id } = useParams();
+    const familias = useSelector((state) => state.familias.familias);
     const dispatch = useDispatch();
     const mesaId = Number(id);
     const [llena, setllena] = React.useState(false);
-    const { familias } = useSelector((state) => state.familias);
     const { sinMesa, mesasData } = useSelector((state) => state.mesas);
     const invitadosEnMesa = useMemo(
         () => mesasData[mesaId] || [],
         [mesasData, mesaId]
     );
 
+    // Detector estricto de pantallas móviles
+    const isMobile = useMediaQuery('(max-width:600px)');
+
+    // ESCALA MATEMÁTICA CORREGIDA: Evita el desborde en pantallas de 360px-400px
+    const tableSize = isMobile ? 180 : 450; // Diámetro del círculo de la mesa blanca
+    const radius = isMobile ? 120 : 260; // Distancia del centro a los invitados (Radio orbital)
+    const guestSize = isMobile ? 55 : 80; // Diámetro de cada burbuja de invitado
+
+    const invitadosLengthRef = useRef(invitadosEnMesa.length);
+    useEffect(() => {
+        invitadosLengthRef.current = invitadosEnMesa.length;
+    }, [invitadosEnMesa.length]);
+
     const onDrop = useCallback(
         (e, destinoMesa) => {
-            if (destinoMesa !== 0 &&invitadosEnMesa.length === 10) {
+            if (destinoMesa !== 0 && invitadosLengthRef.current === 10) {
                 setllena(true);
-                setTimeout(() => {
-                    setllena(false);
-                }, 8000);
-                
+                setTimeout(() => setllena(false), 8000);
             } else {
                 e.preventDefault();
-                const invId = e.dataTransfer.getData('invitadoId');
+                const invId =
+                    e.dataTransfer.getData('invitadoId') ||
+                    e.dataTransfer.getData('text/plain');
                 if (invId) {
+                  
                     dispatch(
                         updateMiembroMesa({
                             invitadoId: invId,
                             nuevaMesa: destinoMesa,
                         })
                     );
-                   
                 }
             }
         },
-        [dispatch, invitadosEnMesa.length]
+        [dispatch]
     );
-    // Memorizamos el mapeo para que solo se calcule SI cambian las familias
-    useMemo(() => {
-       
-        // Procesamiento en un solo ciclo (O(n))
-        dispatch(setMesasData(familias));
-        
-           
-    }, [familias, dispatch]);
 
-    // Sincronización atómica
     useEffect(() => {
-        
-        
-    }, [dispatch, mesasData]);
-
-    // Sincronización atómica
-    
+        dispatch(setMesasData(familias));
+        const preventDefault = (e) => {
+            if (e.target.closest('[draggable="true"]')) {
+                e.preventDefault();
+            }
+        };
+        if ('ontouchstart' in globalThis || navigator.maxTouchPoints > 0) {
+            globalThis.addEventListener('touchmove', preventDefault, {
+                passive: false,
+            });
+        }
+        return () =>
+            globalThis.removeEventListener('touchmove', preventDefault);
+    }, [familias]);
 
     return (
-        <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+        <Box
+            sx={{
+                display: 'flex',
+                height: '100vh',
+                overflow: 'hidden',
+                flexDirection: isMobile ? 'column-reverse' : 'row', // En móvil, el Drawer va abajo para no estorbar
+            }}
+        >
             <Alert
                 severity='error'
-
                 variant='filled'
                 sx={{
                     position: 'absolute',
                     top: llena ? 0 : '-100%',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    height: `${llena ?  10 : 0}%`,
+                    height: llena ? '10%' : '0%',
                     width: '100%',
                     zIndex: 9999,
-                    transition: 'all 1s linear',
-                }}>
-                    ¡Esta mesa está llena!
-                </Alert>
+                    transition: 'all 0.4s ease-out',
+                }}
+            >
+                ¡Esta mesa está llena!
+            </Alert>
+
             <MesasDrawer onDrop={onDrop} sinMesa={sinMesa} mesaId={mesaId} />
 
             <Box
                 sx={{
                     flexGrow: 1,
                     display: 'flex',
+                    flexDirection: 'column', // Apilado vertical para acomodar el nuevo rótulo
                     justifyContent: 'center',
                     alignItems: 'center',
                     bgcolor: '#f0f0f0',
-                    width: '65%',
+                    width: isMobile ? '100%' : '65%',
+                    height: isMobile ? '65vh' : '100%',
+                    gap: isMobile ? 2 : 4,
+                    p: 2,
                 }}
             >
+                {/* ROTULO SUPERIOR CON EL NÚMERO DE MESA INDEPENDIENTE */}
                 <Box
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => onDrop(e, mesaId, 0)}
+                    sx={{
+                        bgcolor: '#D4AF37',
+                        color: 'white',
+                        px: isMobile ? 3 : 5,
+                        py: 1,
+                        mb: 7,
+                        borderRadius: '30px',
+                        boxShadow: '0 4px 15px rgba(212, 175, 55, 0.25)',
+                    }}
+                >
+                    <Typography
+                        variant={isMobile ? 'subtitle1' : 'h4'}
+                        sx={{
+                            fontFamily: 'serif',
+                            fontWeight: 'bold',
+                            letterSpacing: 1.5,
+                            textTransform: 'uppercase',
+                        }}
+                    >
+                        Mesa {id}
+                    </Typography>
+                </Box>
+
+                {/* CONTENEDOR DE LA MESA (ESPACIO CENTRAL) */}
+                <Box
+                    onDragOver={(e) => {
+                        e.preventDefault();
+
+                        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+                    }}
+                    onDragEnter={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                        e.preventDefault();
+                        onDrop(e, mesaId);
+                    }}
                     sx={{
                         position: 'relative',
-                        width: 450,
-                        height: 450,
+                        width: tableSize,
+                        height: tableSize,
                         borderRadius: '50%',
-                        border: '10px solid #D4AF37',
+                        border: `${isMobile ? '6px' : '10px'} solid #D4AF37`,
                         bgcolor: 'white',
                         boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
                         display: 'flex',
@@ -251,42 +332,53 @@ export const TableAssignment = () => {
                         alignItems: 'center',
                     }}
                 >
-                    <Typography
-                        variant='h2'
+                    {/* <Typography
+                        variant={isMobile ? 'h3' : 'h2'}
                         sx={{
                             color: '#D4AF37',
-                            opacity: 0.3,
+                            opacity: 1,
                             fontWeight: 'bold',
                         }}
                     >
-                        {id}
-                    </Typography>
+                         Mesa {id}
+                    </Typography> */}
+
                     <Typography
-                        variant='body2'
-                        sx={{ color: 'text.secondary' }}
+                        variant='caption'
+                        sx={{
+                            color: 'text.secondary',
+                            display: isMobile ? 'flex' : 'block',
+                        }}
                     >
                         Arrastra aquí
                     </Typography>
 
+                    {/* RENDERIZADO ORBITAL DE INVITADOS CON MEDIDAS CORREGIDAS */}
                     {invitadosEnMesa.map((inv, index) => {
                         const angle =
                             (index / invitadosEnMesa.length) * (2 * Math.PI);
-                        const radius = 260;
                         const x = Math.cos(angle) * radius;
                         const y = Math.sin(angle) * radius;
 
                         return (
                             <Box
                                 key={inv.id}
-                                draggable
-                                onDragStart={(e) =>
-                                    e.dataTransfer.setData('invitadoId', inv.id)
-                                }
+                                draggable='true'
+                                onDragStart={(e) => {
+                                    e.dataTransfer.setData(
+                                        'text/plain',
+                                        inv.id
+                                    );
+                                    e.dataTransfer.setData(
+                                        'invitadoId',
+                                        inv.id
+                                    );
+                                }}
                                 sx={{
                                     position: 'absolute',
-                                    transform: `translate(${x}px, ${y}px)`,
-                                    width: 80,
-                                    height: 80,
+                                    transform: `translate3d(${x}px, ${y}px, 0)`,
+                                    width: guestSize,
+                                    height: guestSize,
                                     borderRadius: '50%',
                                     bgcolor: 'secondary.dark',
                                     color: 'white',
@@ -294,12 +386,18 @@ export const TableAssignment = () => {
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                     textAlign: 'center',
-                                    fontSize: '1.75rem',
-                                    boxShadow: 4,
+                                    fontSize: isMobile ? '0.65rem' : '1rem', // Texto compacto y legible en celular
+                                    fontWeight: 'bold',
+                                    boxShadow: 3,
                                     cursor: 'grab',
-                                    zIndex: 10,
-                                    p: 1,
-                                    border: '2px solid white',
+                                    zIndex: 0,
+                                    p: 0.5,
+                                    border: '1.5px solid white',
+                                    touchAction: 'none',
+                                    WebkitUserSelect: 'none',
+                                    userSelect: 'none',
+                                    willChange: 'transform',
+                                    wordBreak: 'break-word', // Evita que nombres largos rompan el círculo
                                 }}
                             >
                                 {inv.nombre.split(' ')[0]}

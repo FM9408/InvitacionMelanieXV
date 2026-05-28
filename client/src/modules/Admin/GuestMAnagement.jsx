@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { useDispatch} from 'react-redux';
+import { useDispatch, useSelector} from 'react-redux';
 import { IconButton, Tooltip, Zoom } from '@mui/material';
 import PropTypes from 'prop-types';
 
@@ -11,7 +11,7 @@ import EmailIcon from '@mui/icons-material/Email';
 // Componentes y Slices
 import FamilyModal from '../../components/FamilyModal/FamilyModal';
 import { AddaFamily } from '../../store/slices/familiesSlice';
-import { fetchInvitados } from '../../store/slices/adminSlice';
+import { setError } from '../../store/slices/mensajesSlice';
 
 /**
  * Hook personalizado interno para manejar la lógica de iconos
@@ -27,6 +27,8 @@ const getIconByMode = (mode) => {
 
 export const GuestManagement = ({ mode, totalGuests }) => {
     const dispatch = useDispatch();
+    const familias = useSelector(state => state.familias)
+    
     
     // Estado para el modal
     const [modalOpen, setModalOpen] = useState(false);
@@ -36,7 +38,7 @@ export const GuestManagement = ({ mode, totalGuests }) => {
 
     // Límite de invitados (ejemplo basado en tu lógica anterior)
     const isLimitReached = totalGuests >= 150;
-
+    
     // --- Manejadores de Eventos ---
     
     const handleOpen = useCallback(() => {
@@ -61,19 +63,19 @@ export const GuestManagement = ({ mode, totalGuests }) => {
                 
                 // Opcional: Solo si el socket tarda mucho en responder
                 // dispatch(fetchInvitados());
-                setTimeout(() => {
-                    dispatch(fetchInvitados());
-                }, 1000);
+                
             
-            } else {
-                console.warn(`Modo "${mode}" no implementado aún.`);
-            }
+            } 
             handleClose();
         } catch (err) {
-            console.error('Error al guardar la familia:', err);
+            dispatch(setError({ hasError: true, message: err.message }))
+            setTimeout(() => dispatch(setError({ hasError: false, message: '' }), 5000))
             // Aquí podrías disparar un Snackbar/Alerta de error
         }
     };
+    React.useEffect(() => {
+
+    }, [modalOpen, familias])
 
     return (
         <>

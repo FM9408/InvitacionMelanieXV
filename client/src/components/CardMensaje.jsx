@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, IconButton, useTheme } from '@mui/material';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
    
     deleteMensajeofDB,
@@ -8,17 +8,30 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import * as Proptypes from 'prop-types';
 
-export function CardMensaje({ m }) {
+export function CardMensaje ({ m }) {
+    const [sender, setSender] = React.useState("")
+    const {familias} = useSelector((state) => state.familias)
     const theme = useTheme();
     const dispatch = useDispatch();
-    async function deleteHandle() {
+    async function deleteHandle () {
+        const answer = globalThis.confirm("¿Seguro que quieres borrar este mensaje?")
         try {
-            dispatch(deleteMensajeofDB(m.id));
+            answer === true ? await dispatch(deleteMensajeofDB(m.id, )) : null
+            
         } catch (error) {
-            console.error(error);
+            document.dispatchEvent("error", error)
         }
     }
-    React.useEffect(() => {}, []);
+    React.useEffect(() => {
+        if (m?.apellido === "" || !m?.apellido ) {
+            const familia = familias.find((f) => f.id === m?.familia_Id);
+            if (!familia) {
+                setSender("Eliminada")
+                return
+            }
+            setSender(familia?.apellido)
+        }
+    }, [familias, m?.apellido, m?.familia_Id]);
 
     return (
         <Box
@@ -60,7 +73,7 @@ export function CardMensaje({ m }) {
                         textAlign: 'center',
                     }}
                 >
-                    Familia {m.apellido}
+                    Familia {sender} 
                 </Typography>
 
                 <Typography

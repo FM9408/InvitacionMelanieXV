@@ -1,4 +1,16 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import axios from 'axios'
+
+export const fetchInvitadoById = createAsyncThunk(
+    'invitado/fetchInvitado',
+    async (id) => {
+        const response = await axios.get(
+            `${axios.defaults.baseURL}/api/invitados/getFamilia/${id}`
+        );
+        return response.data;
+    }
+)
+
 
 const initialState = {
     datos: { miembros: [] },
@@ -27,6 +39,18 @@ const invitadoSlice = createSlice({
         }
 
         
+    }, extraReducers: (builder) => {
+        builder.addCase(fetchInvitadoById.pending, (state) => {
+            state.loading = true
+        })
+        builder.addCase(fetchInvitadoById.fulfilled, (state, action) => {
+            state.datos = action.payload
+            state.loading = false
+        })
+        builder.addCase(fetchInvitadoById.rejected, (state, action) => {
+            state.loading = false
+            state.error = action.error.message
+        })
     }
 })
 

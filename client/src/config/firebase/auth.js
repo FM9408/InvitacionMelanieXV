@@ -16,7 +16,7 @@ if (import.meta.env.MODE === "development") {
 }
 
 
-export async function login(email, password) {
+export async function login (email, password) {
     try {
         const userCredential = await firebaseAuth.signInWithEmailAndPassword(
             auth,
@@ -27,6 +27,22 @@ export async function login(email, password) {
         
         return user;
     } catch (error) {
-        throw new Error(error);
+        switch (error.code) {
+            case "auth/wrong-password":
+                throw new Error("Contraseña incorrecta");
+
+                
+            case "auth/user-not-found":
+                throw new Error("Email incorrecto");
+
+                
+            default:
+                throw new Error("Error al iniciar sesión");
+        
+
+        
+           
+        
+        }
     }
 }

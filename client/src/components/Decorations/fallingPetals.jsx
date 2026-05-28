@@ -47,7 +47,7 @@ const PetalosEfecto = ({ rutaPng, cantidad }) => {
         <Box
           key={p.id}
           component="img"
-          src={rutaPng}
+          src={rutaPng || null}
           alt="pétalo"
           sx={{
             position: 'absolute',

@@ -32,6 +32,21 @@ export const assignarMesas = createAsyncThunk(
     }
 )
 
+export const actualizarFamilia = createAsyncThunk(
+    'familias/actualizarFamilia',
+    async (familiaData) => {
+        const response = await axios.put(
+            `${axios.defaults.baseURL}/api/invitados/modificarFamilia`,
+            {
+                ...familiaData,
+            }
+            
+        )
+        return response.data
+    }
+)
+        
+
 
 const familiesSlice = createSlice({
     name: 'familias',
@@ -42,7 +57,6 @@ const familiesSlice = createSlice({
         },
         updateMiembroMesa: (state, action) => {
             const { invitadoId, nuevaMesa } = action.payload;
-            console.log(action.payload)
             state.familias.forEach((familia) => {
                 const miembro = familia.miembros.find(
                     (m) => m.id === invitadoId
@@ -73,6 +87,16 @@ const familiesSlice = createSlice({
         });
         builder.addCase(assignarMesas.rejected, (state, action) => {
             state.loading = false;
+            state.error = action.error.message;
+        });
+        builder.addCase(actualizarFamilia.pending, (state) => {
+            state.loading = true;
+            
+        });
+        builder.addCase(actualizarFamilia.fulfilled, (state) => {
+            state.loading = false;
+        });
+        builder.addCase(actualizarFamilia.rejected, (state, action) => {    
             state.error = action.error.message;
         });
     },

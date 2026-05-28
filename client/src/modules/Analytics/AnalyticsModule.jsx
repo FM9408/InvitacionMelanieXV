@@ -5,10 +5,9 @@ import {
     XAxis,
     YAxis,
     CartesianGrid,
-    Tooltip
-} from 'recharts'
-import { Box, useTheme } from '@mui/material'
-import { useSelector } from 'react-redux';
+    Tooltip,
+} from 'recharts';
+import { Box, useTheme } from '@mui/material';
 import React from 'react';
 
 // Datos de ejemplo: Confirmaciones por día
@@ -20,44 +19,56 @@ import React from 'react';
 //     { fecha: '15 Mar', confirmados: 40 }
 // ]
 
-const buildConfirmedData = (invitados) => {
-    const countsByDate = {}
+const buildConfirmedData = (familias) => {
+    const countsByDate = {};
+   
+    countsByDate['01 05'] = 0;
+    for (const familia of familias) {
+        if (!familia.miembros) {
+            continue;
+        } else {
+            for (const miembro of familia.miembros) {
+                if (
+                    miembro.willAssist !== 'Confirmado' ||
+                    !miembro.confirmationDate
+                ) {
+                    continue
+                } else {
+                    const fecha = miembro.confirmationDate
+                        .split('T')[0]
+                        .split('-')
+                        .reverse()
+                        .join(' ');
 
-    invitados.forEach((familia) => {
-        if (!familia.miembros) return
-        countsByDate['01 05'] =0
-        familia.miembros.forEach((miembro) => {
-            
-            if (miembro.willAssist !== 'Confirmado' || !miembro.confirmationDate) return
+                    countsByDate[fecha] = (countsByDate[fecha] || 0) + 1;
+                }
+            }
+        }
+        // if (!familia.miembros) { return; }
+        //  for(const miembro of familia) {
 
-            const fecha = miembro.confirmationDate
-                .split('T')[0]
-                .split('-')
-                .reverse()
-                .join(' ')
+        //     if (miembro.willAssist !== 'Confirmado' || !miembro.confirmationDate) return
 
-            countsByDate[fecha] = (countsByDate[fecha] || 0) +1
-        })
+        //     const fecha = miembro.confirmationDate
+        //         .split('T')[0]
+        //         .split('-')
+        //         .reverse()
+        //         .join(' ')
 
-    })
+        //     countsByDate[fecha] = (countsByDate[fecha] || 0) +1
+        // }
+    }
 
     return Object.entries(countsByDate).map(([fecha, confirmados]) => ({
-        fecha: fecha.split(' ').join('/').slice(0,5),
-        confirmados
-    }))
-}
+        fecha: fecha.split(' ').join('/').slice(0, 5),
+        confirmados,
+    }));
+};
 
-const AnalyticsModule = () => {
-    const { familias } = useSelector((state) => state.familias)
-    const { invitados } = useSelector((state) => state.admin)
-    const data = React.useMemo(() => buildConfirmedData(invitados), [invitados])
-    const theme = useTheme()
-
-
-    React.useEffect(() => {
-      console.log(data)
-    }, [data, familias])
-
+const AnalyticsModule = ({invitados}) => {
+    
+    const data = React.useMemo(() => buildConfirmedData(invitados), [invitados]);
+    const theme = useTheme();
 
     return (
         <Box sx={{ p: 2, width: '100%', height: { xs: 300, md: 170 } }}>
@@ -71,7 +82,6 @@ const AnalyticsModule = () => {
                             x2='0'
                             y2='1'
                         >
-                           
                             <stop
                                 offset='5%'
                                 stopColor={theme.palette.primary.dark}
@@ -80,8 +90,8 @@ const AnalyticsModule = () => {
                             <stop
                                 offset='60%'
                                 stopColor={theme.palette.primary.main}
-                                stopOpacity={.3}
-                            />  
+                                stopOpacity={0.3}
+                            />
                             <stop
                                 offset='95%'
                                 stopColor={theme.palette.primary.light}
@@ -89,9 +99,12 @@ const AnalyticsModule = () => {
                             />
                         </linearGradient>
                     </defs>
-                    <CartesianGrid color={theme.palette.secondary.main}  vertical={true} />
+                    <CartesianGrid
+                        color={theme.palette.secondary.main}
+                        vertical={true}
+                    />
                     <XAxis dataKey='fecha' />
-                    <YAxis dataKey={"confirmados"} />
+                    <YAxis dataKey={'confirmados'} />
                     <Tooltip />
                     <Area
                         type='bump'
@@ -105,7 +118,7 @@ const AnalyticsModule = () => {
                 </AreaChart>
             </ResponsiveContainer>
         </Box>
-    )
-}
+    );
+};
 
-export default AnalyticsModule
+export default AnalyticsModule;
