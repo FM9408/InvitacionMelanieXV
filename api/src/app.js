@@ -1,12 +1,14 @@
 const express = require('express');
 const cors = require('cors');
+const http = require('node:http');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const { initSocket }  = require('./config/websocketConfig.js');
 const compression = require('compression'); // 1. Nueva dependencia
 const MainRouter = require('./routes/index.js');
-
 const api = express();
-
+const server = http.createServer(api);
+const io = initSocket(server)
 // --- 1. MIDDLEWARES DE RENDIMIENTO ---
 
 // Health Check ANTES de cualquier lógica para respuesta ultra-rápida
@@ -44,8 +46,12 @@ api.use(cookieParser());
 
 // --- 2. RUTAS ---
 
-api.use('/api', MainRouter);
+api.use((req, res, next) => {
+    req.io = io
+    next();
+})
 
+api.use('/api', MainRouter);
 // --- 3. MANEJO DE ERRORES ---
 
 api.use((err, req, res, next) => {
@@ -63,4 +69,4 @@ api.use((err, req, res, next) => {
     });
 });
 
-module.exports = api;
+module.exports = { server, io };

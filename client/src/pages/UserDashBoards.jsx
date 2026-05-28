@@ -10,10 +10,12 @@ import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Alert from '@mui/material/Alert';
+import Snackbar from '@mui/material/Snackbar';
 import petalPNG from '../assets/images/cherryBlossom.png';
 import confettiPng from '../assets/images/confeti.png';
 import gifts from '../assets/images/gifts.png';
 import PetalosEfecto from '../components/Decorations/fallingPetals.jsx';
+import { socket } from '../hooks/ioSockets/socket.js';
 import RoseDevider from '../components/Decorations/roseDivider';
 import {
     Restaurant as UtensilsIcon,
@@ -26,9 +28,15 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import AlertaAsistencia from '../modules/alertModal.jsx';
 import { sendMensaje } from '../store/slices/mensajesSlice.jsx';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import FamilyModal from '../components/FamilyModal/FamilyModal.jsx';
 import { setUser } from '../store/slices/authSlice.js';
+import { setInvitados } from '../store/slices/adminSlice.js';
+import { setFamilias } from '../store/slices/familiesSlice.js';
+import {
+    fetchInvitadoById,
+    setInvitado,
+} from '../store/slices/invitationSlice.js';
 
 const mensajes = [
     'No olvides escribir tus buenos deseos para la quinceañera en la sección de mensajes!',
@@ -36,7 +44,7 @@ const mensajes = [
     '¡No olvides tu regalo!🎁🎁🎁🎁',
     '¡Recuerda que la fiesta es para celebrar a la quinceañera, así que trae tu mejor actitud!',
     '¡No olvides revisar tu mesa asignada en la sección de mesas!',
-    '¡No olvides confirmar! Si no confirmas no podremos asignarte mesa para el evento'
+    '¡No olvides confirmar! Si no confirmas no podremos asignarte mesa para el evento',
 ];
 
 const effects = [petalPNG, confettiPng, gifts];
@@ -54,28 +62,54 @@ const GuestDashboard = () => {
     // Estado booleano que controla si la alerta está visible en pantalla o guardada arriba
     const [showAlert, setShowAlert] = useState(false);
 
-    const [isMesaAssign, setIsMesaAssign] = useState(false);
+    const { datos } = useSelector((state) => state.invitado);
+    const { familias } = useSelector((state) => state.familias);
 
-    const { user } = useSelector((state) => state.auth);
     const [modalOpen, setModalOpen] = useState(false);
     const [hasOpened, setHasOpened] = useState(false);
     const [alertOpen, setALertOpen] = React.useState(false);
-    const [miembros, setMiembros] = React.useState([]);
+
     // Estado para los miembros
     const [effct, setEffct] = React.useState('');
-    
+
     // Estado para el mensaje
     const [mensaje, setMensaje] = useState('');
-    
+
     const [info, setInfo] = useState({
         id: '',
         nombre: '',
         mesa: '',
     });
-    
-    
-    
-   
+
+    const { familyID } = useParams();
+    const [id, setId] = useState('');
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+
+    React.useEffect(() => {
+        // 1. Avisar al servidor que nos queremos unir a nuestro cuarto familiar
+        socket.emit('unirse_familia', familyID);
+
+        // 2. Escuchar el evento de asignación de mesa
+        socket.on('notificacion_mesa_asignada', (data) => {
+            const familiaFilter = familias.filter(
+                (familia) => familia.id !== data.id
+            );
+            dispatch(setInvitado(data));
+            dispatch(setInvitados([...familiaFilter, data]));
+            dispatch(setFamilias([...familiaFilter, data]));
+            setOpenSnackbar(true);
+        });
+        // Limpieza del efecto al desmontar el componente
+        return () => {
+            socket.off('notificacion_mesa_asignada');
+        };
+    }, [familias, dispatch, familyID]);
+
+    const handleClose = (event, reason) => {
+        if (reason === 'clickaway') return;
+        setOpenSnackbar(false);
+    };
+
     React.useEffect(() => {
         // Función recursiva con timeouts dinámicos para manejar los tiempos asimétricos
         const runSequence = () => {
@@ -121,62 +155,53 @@ const GuestDashboard = () => {
 
         setMensaje('');
     };
-    const storagedUser = globalThis.sessionStorage.getItem('user')
-    const parsedUser = JSON.parse(storagedUser);
-    const id = parsedUser?.id;
 
-  React.useEffect(() => {
-    if (parsedUser) {
-        if (!user?.id || user.id !== id) {
-            dispatch(setUser(parsedUser));
+    async function getUserByID() {
+        try {
+            dispatch(fetchInvitadoById(id));
+        } catch (error) {
+            console.error(error);
         }
     }
-}, [parsedUser, dispatch, id, user?.id]);
-    React.useEffect(() => {
-        const confirmaciones = miembros.map((miembro) => miembro.willAssist)
-        const apellido = user?.apellido;
-        const mesa = user?.mesa;
 
-       
+    React.useEffect(() => {
+        if (id !== '') {
+            getUserByID();
+        }
+    }, [id]);
+
+    React.useEffect(() => {
+        if (familyID) {
+            setId(familyID);
+        }
+
+        //User/
+        dispatch(setUser(datos));
+        const confirmaciones = datos.miembros?.map(
+            (miembro) => miembro.willAssist
+        );
+        const apellido = datos.apellido;
+
         setInfo({
             nombre: apellido,
-            mesa: mesa,
             id: id,
+            mesa: datos.mesa,
         });
 
         setEffct(effects[setEffectHandle()]);
         // SOLUCIÓN: Sincronizar el estado local cada vez que el "user" de Redux mute
-        const invitados = user?.miembros || [];
-        setMiembros(invitados);
 
-        // Control de mesas asignadas basado en el objeto actualizado
-        let asignada = true;
-        invitados.forEach((member) => {
-            if (member.mesa === 0) {
-                asignada = false;
-            }
-        });
-        setIsMesaAssign(asignada);
-       
         const interval = setInterval(() => {
             // ... tu lógica de intervalos de mensajes
             setEffct(effects[setEffectHandle()]);
         }, 20000);
-        setALertOpen(confirmaciones.includes('Confirmada'))
-        return () => { 
+        setALertOpen(confirmaciones?.includes('Pendiente'));
+
+        return () => {
             clearInterval(interval);
         };
         // Agregamos user.miembros a las dependencias para que el efecto se ejecute al cambiar los datos
-    }, [
-      
-        
-        hasOpened,
-        modalOpen,
-        user,
-      
-        effct,
-        
-    ]);
+    }, [familyID, id, datos, hasOpened, modalOpen, effct, familias, dispatch]);
 
     return (
         <Box sx={{ height: 'fit-content', width: '100%' }}>
@@ -512,9 +537,9 @@ const GuestDashboard = () => {
 
                                             <RoseDevider />
                                             <Box>
-                                                {isMesaAssign ?
+                                                {
                                                     <Box>
-                                                        {miembros.map(
+                                                        {datos.miembros.map(
                                                             (invitado) => {
                                                                 return (
                                                                     <Box
@@ -543,22 +568,10 @@ const GuestDashboard = () => {
                                                                                 }
                                                                             </Typography>
                                                                         )}
-                                                                        
                                                                     </Box>
                                                                 );
                                                             }
                                                         )}
-                                                    </Box>
-                                                :   <Box>
-                                                        <Typography
-                                                            variant='body1'
-                                                            sx={{
-                                                                width: '100%',
-                                                            }}
-                                                        >
-                                                            Aún no se te ha
-                                                            asignado una mesa
-                                                        </Typography>
                                                     </Box>
                                                 }
                                             </Box>
@@ -833,10 +846,19 @@ const GuestDashboard = () => {
                             </Grid>
                         </Grid>
                     </Grid>
-                    <Grid container gap={1} direction={{ xs: 'column', md: 'row'}} sx={{ width: '100%', justifyItems: 'center', alignItems: 'center'}}>
-                        <Grid item
+                    <Grid
+                        container
+                        gap={1}
+                        direction={{ xs: 'column', md: 'row' }}
+                        sx={{
+                            width: '100%',
+                            justifyItems: 'center',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <Grid
+                            item
                             sx={{
-                                
                                 justifyContent: 'center',
                                 width: {
                                     xs: '100%',
@@ -844,43 +866,49 @@ const GuestDashboard = () => {
                                 },
                             }}
                         >
-                             <Button
+                            <Button
                                 onClick={() => navigate(`/inMemoriam`)}
                                 variant='contained'
                                 size='large'
-                                 sx={{
+                                sx={{
                                     backgroundColor: `${theme.palette.common.black}`,
-                                    width: "100%",
+                                    width: '100%',
                                     borderColor: theme.palette.primary.light,
-                                    borderWidth: .2,
-                                     borderStyle: 'solid',
+                                    borderWidth: 0.2,
+                                    borderStyle: 'solid',
                                     boxShadow: `2px 3px 5px ${theme.palette.secondary.main}}`,
                                 }}
                             >
                                 <Typography color='white'> Memorial</Typography>
                             </Button>
                         </Grid>
-                        <Grid item
+                        <Grid
+                            item
                             sx={{
-                                
                                 justifyContent: 'center',
-                               width: {
+                                width: {
                                     xs: '100%',
                                     md: `32.5%`,
                                 },
                             }}
                         >
                             <Button
-                                onClick={() => navigate(`/user/${id}`)}
+                                onClick={() => {
+                                    globalThis.localStorage.setItem(
+                                        'visited',
+                                        false
+                                    );
+                                    navigate(`/user/${id}`);
+                                }}
                                 variant='contained'
                                 size='large'
                                 sx={{
                                     backgroundColor: `${theme.palette.common.black}`,
-                                    width: "100%",
+                                    width: '100%',
                                     borderColor: theme.palette.primary.light,
-                                    borderWidth: .2,
+                                    borderWidth: 0.2,
                                     borderStyle: 'solid',
-                                     boxShadow: `2px 3px 5px ${theme.palette.secondary.main}}`,
+                                    boxShadow: `2px 3px 5px ${theme.palette.secondary.main}}`,
                                 }}
                             >
                                 <Typography color='white'>
@@ -888,33 +916,34 @@ const GuestDashboard = () => {
                                 </Typography>
                             </Button>
                         </Grid>
-                        <Grid item
+                        <Grid
+                            item
                             sx={{
                                 width: {
                                     xs: '100%',
                                     md: `${100 / 3}%`,
                                 },
-                               
+
                                 justifyContent: 'center',
                             }}
                         >
                             <Button
                                 variant='contained'
                                 size='large'
-                                 sx={{
+                                sx={{
                                     backgroundColor: `${theme.palette.common.black}`,
-                                    width: "100%",
+                                    width: '100%',
                                     borderColor: theme.palette.primary.light,
-                                    borderWidth: .2,
-                                     borderStyle: 'solid',
-                                     boxShadow: `2px 3px 5px ${theme.palette.secondary.main}}`,
-                                    
+                                    borderWidth: 0.2,
+                                    borderStyle: 'solid',
+                                    boxShadow: `2px 3px 5px ${theme.palette.secondary.main}}`,
                                 }}
                                 onClick={() => {
-                                    globalThis.sessionStorage.clear()
-                                    dispatch(setUser({
-                                        id:""
-                                    }));
+                                    dispatch(
+                                        setUser({
+                                            id: '',
+                                        })
+                                    );
                                     navigate('/');
                                 }}
                             >
@@ -935,10 +964,23 @@ const GuestDashboard = () => {
             <AlertaAsistencia
                 tieneConfirmacion={alertOpen}
                 setModalOpen={setModalOpen}
-                onClose={() => {
-                    setALertOpen(false);
-                }}
+                onClose={() => setALertOpen(false)}
             />
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={6000}
+                onClose={handleClose}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+                <Alert
+                    onClose={handleClose}
+                    severity='info'
+                    variant='filled'
+                    sx={{ width: '100%' }}
+                >
+                    Se te ha asignado una mesa
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

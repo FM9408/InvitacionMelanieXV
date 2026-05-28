@@ -66,7 +66,7 @@ sequelize.models = Object.fromEntries(capsEntries)
 
 // En sequelize.models están todos los modelos importados como propiedades
 // Para relacionarlos hacemos un destructuring
-const { Invitado, Familia, Mensaje } = sequelize.models
+const { Invitado, Familia, Mensaje, Notificacion } = sequelize.models;
 
 Familia.hasMany(Invitado, { as: 'miembros', foreignKey: 'familia_Id' })
 Invitado.belongsTo(Familia, { foreignKey: 'familia_Id' })

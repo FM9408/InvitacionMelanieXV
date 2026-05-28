@@ -23,35 +23,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import './App.css';
 import { setInvitado } from './store/slices/invitationSlice.js';
 
-export const renderMesasData = ({ dispatch, familias }) => {
-    // Procesamiento en un solo ciclo (O(n))
-    dispatch(setMesasData(familias));
-};
-
-export const invitadosFetch = async ({ dispatch }) => {
-    try {
-        const familias = await dispatch(fetchInvitados());
-        return familias.payload;
-    } catch (error) {
-        throw new Error(error);
-    }
-};
-const mensajesFetch = async ({ dispatch }) => {
-    try {
-        const mensajes = await dispatch(fetchMensajes());
-        return mensajes;
-    } catch (error) {
-        throw new Error(error);
-    }
-};
-
 function App() {
-    const { mensajes } = useSelector((state) => state.mensajes);
-    const storagedUser = globalThis.sessionStorage.getItem('user');
-    const parsedUser = JSON.parse(storagedUser)
     const dispatch = useDispatch();
     const { user, isAdmin } = useSelector((state) => state.auth);
-    const { familias } = useSelector((state) => state.familias);
     const [background, setBackground] = useState('');
 
     const [isAuthChecking, setIsAuthChecking] = useState(true);
@@ -63,82 +37,16 @@ function App() {
     const theme = useTheme();
     const navigate = useNavigate();
     const location = useLocation();
-    const { invitados } = useSelector((state) => state.admin);
 
-  // ✅ CORRECCIÓN DEFINITIVA: Sockets migrados a useEffect con limpieza de eventos
+    // ✅ CORRECCIÓN DEFINITIVA: Sockets migrados a useEffect con limpieza de eventos
     useEffect(() => {
         socket.connect();
         socket.io.connect();
 
-        socket.on('newConnection', async () => {
-            try {
-                const familiasData = await invitadosFetch({ dispatch });
-                await mensajesFetch({ dispatch });
-                // Usamos la data devuelta por la promesa en lugar del estado externo 'invitados'
-                if (familiasData) {
-                    dispatch(setFamilias(familiasData));
-                }
-            } catch (error) {
-                setError({ error: true, message: error.message });
-                setTimeout(() => setError({ error: false, message: "" }), 5000);
-            }
-        });
-
-        socket.on('newMensajeCreado', (data) => {
-            // Usamos un callback funcional o validación interna para evitar depender de 'familias' en el scope externo
-            if (data) {
-                dispatch(setMensajes(data));
-                dispatch(setMessagesNotifications(`¡Has recibido un nuevo mensaje!`));
-            }
-        });
-
-        socket.on('newMensajeEliminado', async () => {
-            try {
-                const mensajes = await mensajesFetch({ dispatch });
-                if (mensajes) {
-                    mensajes.forEach(m => dispatch(setMensajes(m)));
-                }
-            } catch (error) {
-                setError({ error: true, message: error.message });
-                setTimeout(() => setError({ error: false, message: "" }), 5000);
-            }
-        });
-
-        socket.on('newFamilyCreated', async () => {
-            try {
-                await invitadosFetch({ dispatch });
-            } catch (error) {
-                setError({ error: true, message: error.message });
-                setTimeout(() => setError({ error: false, message: "" }), 5000);
-            }
-        });
-
-        socket.on('newMesaAsignada', (data) => {
-            console.log("Mesa asignada vía socket:", data);
-        });
-
-        socket.on('newFamilyModified', async () => {
-            try {
-                await invitadosFetch({ dispatch });
-            } catch (error) {
-                setError({ error: true, message: error.message });
-                setTimeout(() => setError({ error: false, message: "" }), 5000);
-            }
-        });
-
-        socket.on('newConfirmation', async () => {
-            await invitadosFetch({ dispatch });
-        });
-
         // FUNCIÓN DE LIMPIEZA: Apaga los listeners viejos cuando el componente cambie o se desmonte
         return () => {
             socket.off('newConnection');
-            socket.off('newMensajeCreado');
-            socket.off('newMensajeEliminado');
-            socket.off('newFamilyCreated');
-            socket.off('newMesaAsignada');
-            socket.off('newFamilyModified');
-            socket.off('newConfirmation');
+
             socket.disconnect();
         };
     }, [dispatch]); // Arreglo limpio: Solo depende de dispatch
@@ -146,6 +54,7 @@ function App() {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (userAuth) => {
             if (userAuth) {
+                 socket.emit("newAdminlogged", userAuth.uid)
                 dispatch(setAdmin(true));
             } else {
                 dispatch(setAdmin(false));
@@ -180,37 +89,28 @@ function App() {
         loadAssets();
     }, [dispatch]); // Solo se
 
-   // ✅ CORRECCIÓN
-useEffect(() => {
-    renderMesasData({ dispatch, familias });
-}, [dispatch, familias]);
+    // ✅ CORRECCIÓN
 
     useEffect(() => {
-        if (familias.length !== invitados.length) {
-            dispatch(setFamilias(invitados));
+        if (location.pathname.startsWith('/inMemoriam')) {
+            return;
+        } else if (
+            !isAdmin &&
+            globalThis.location.pathname.startsWith('/admin')
+        ) {
+            navigate('/');
+        } else if (isAdmin && globalThis.location.pathname === '/') {
+            navigate('/admin/dashboard');
+        } else if (JSON.parse(localStorage.getItem('visited')) === true) {
+            if (
+                user?.id !== '' &&
+                user?.id !== undefined &&
+                user?.id !== null 
+            ) {
+                navigate(`/user/${user?.id}/dashboard`);
+            }
         }
-        if (location.pathname.startsWith("/inMemoriam")) {
-        return
-    } else if (!isAdmin && globalThis.location.pathname.startsWith('/admin')) {
-        navigate('/');
-    } else if (isAdmin && globalThis.location.pathname === '/') {
-        navigate('/admin/dashboard');
-    
-    }
-    else if (parsedUser && location.pathname.endsWith("/dashboard")) {
-         dispatch(setInvitado(parsedUser))
-         dispatch(setUser(parsedUser))
-     }
-
-    }, [
-        familias,
-        dispatch,
-        invitados,
-       
-       
-        isAdmin,
-        navigate,
-    ]);
+    }, [dispatch, isAdmin, navigate, location.pathname]);
 
     const boxStyles = useMemo(
         () => ({
@@ -242,7 +142,7 @@ useEffect(() => {
     });
     if (isAuthChecking) return null;
     return (
-        <UserContext.Provider value={user?.user}>
+        <UserContext.Provider value={user}>
             <ThemeContext.Provider value={theme}>
                 <Box sx={boxStyles}>
                     <Alert

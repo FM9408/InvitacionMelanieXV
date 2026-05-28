@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
-import { invitadosFetch } from '../App';
+
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -30,9 +30,12 @@ import { setMesasData } from '../store/slices/mesasSlice';
 import {
     updateMiembroMesa,
     assignarMesas,
+    setFamilias,
 } from '../store/slices/familiesSlice';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
+import { setInvitados } from '../store/slices/adminSlice';
+import { setError } from '../store/slices/mensajesSlice';
 
 /**
  * VISTA 1: Plano General
@@ -40,10 +43,14 @@ import Alert from '@mui/material/Alert';
 export function SeatingChart() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
+
     const { familias } = useSelector((state) => state.familias);
+    const { invitados } = useSelector((state) => state.admin);
     const { mesasData } = useSelector((state) => state.mesas);
 
-    useEffect(() => {}, [familias, dispatch, mesasData]);
+    useEffect(() => {
+        dispatch(setMesasData(familias));
+    }, [familias, dispatch]);
 
     return (
         <Box sx={{ p: 4, bgcolor: '#f5f5f5', minHeight: '100vh' }}>
@@ -133,9 +140,10 @@ export function SeatingChart() {
                     >
                         <Grid item>
                             <Button
-                                onClick={() =>
-                                    dispatch(assignarMesas(familias))
-                                }
+                                onClick={() => {
+                                   
+                                    dispatch(assignarMesas(familias));
+                                }}
                                 variant='contained'
                             >
                                 Guardar cambios
@@ -146,14 +154,10 @@ export function SeatingChart() {
                                 variant='contained'
                                 onClick={async () => {
                                     try {
-                                        const families = await invitadosFetch({
-                                            dispatch,
-                                        });
-                                        dispatch(
-                                            setMesasData(families.payload)
-                                        );
+                                        dispatch(setFamilias(invitados));
+                                        dispatch(setMesasData(invitados));
                                     } catch (error) {
-                                        console.error(error);
+                                        setError()
                                     }
                                 }}
                             >
@@ -172,6 +176,7 @@ export function SeatingChart() {
  */
 export const TableAssignment = () => {
     const { id } = useParams();
+    const familias = useSelector((state) => state.familias.familias);
     const dispatch = useDispatch();
     const mesaId = Number(id);
     const [llena, setllena] = React.useState(false);
@@ -205,6 +210,7 @@ export const TableAssignment = () => {
                     e.dataTransfer.getData('invitadoId') ||
                     e.dataTransfer.getData('text/plain');
                 if (invId) {
+                  
                     dispatch(
                         updateMiembroMesa({
                             invitadoId: invId,
@@ -218,6 +224,7 @@ export const TableAssignment = () => {
     );
 
     useEffect(() => {
+        dispatch(setMesasData(familias));
         const preventDefault = (e) => {
             if (e.target.closest('[draggable="true"]')) {
                 e.preventDefault();
@@ -228,8 +235,9 @@ export const TableAssignment = () => {
                 passive: false,
             });
         }
-        return () => globalThis.removeEventListener('touchmove', preventDefault);
-    }, []);
+        return () =>
+            globalThis.removeEventListener('touchmove', preventDefault);
+    }, [familias]);
 
     return (
         <Box
@@ -302,6 +310,7 @@ export const TableAssignment = () => {
                 <Box
                     onDragOver={(e) => {
                         e.preventDefault();
+
                         if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
                     }}
                     onDragEnter={(e) => e.preventDefault()}

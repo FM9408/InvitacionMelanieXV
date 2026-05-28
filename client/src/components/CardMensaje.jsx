@@ -16,18 +16,22 @@ export function CardMensaje ({ m }) {
     async function deleteHandle () {
         const answer = globalThis.confirm("¿Seguro que quieres borrar este mensaje?")
         try {
-            answer === true ? await dispatch(deleteMensajeofDB(m.id)) : null
+            answer === true ? await dispatch(deleteMensajeofDB(m.id, )) : null
             
         } catch (error) {
             document.dispatchEvent("error", error)
         }
     }
     React.useEffect(() => {
-        if (m.apellido === "" || !m.apellido) {
-            const familia = familias.find((f) => f.id === m.familia_Id);
-            setSender(familia.apellido)
+        if (m?.apellido === "" || !m?.apellido ) {
+            const familia = familias.find((f) => f.id === m?.familia_Id);
+            if (!familia) {
+                setSender("Eliminada")
+                return
+            }
+            setSender(familia?.apellido)
         }
-    }, [familias, m.apellido, m.familia_Id]);
+    }, [familias, m?.apellido, m?.familia_Id]);
 
     return (
         <Box

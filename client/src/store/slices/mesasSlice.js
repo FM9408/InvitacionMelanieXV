@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 
+
 function fasterRender (state, familias) {
      const _mapping = {};
      const _sinMesa = [];

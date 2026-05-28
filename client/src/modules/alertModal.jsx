@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Typography, Grid } from '@mui/material';
 
 export default function AlertaAsistencia ({ tieneConfirmacion, setModalOpen, onClose }) {
     // El modal se abre automáticamente si el usuario no ha confirmado la asistencia
-    const [open, setOpen] = useState(tieneConfirmacion);
+
   
     //
     const handleClose = () => {
-      setOpen(!open);
+      onClose();
+      
     };
 
     
@@ -15,7 +16,7 @@ export default function AlertaAsistencia ({ tieneConfirmacion, setModalOpen, onC
 
 
   return (
-    <Dialog open={!open} onClose={handleClose} sx={{width:"100%", display:"flex", justifyContent: "center", alignItems: "center"}}>
+    <Dialog open={tieneConfirmacion} onClose={handleClose} sx={{width:"100%", display:"flex", justifyContent: "center", alignItems: "center"}}>
           <DialogTitle sx={{ display: "inline-flex", justifyContent: "center", alignItems: "center", width: "100%", p: -2, m: 0 }}>
               <Grid container direction="column" >
                   <Grid item sx={{width:"100%", display:"inline-flex", justifyContent: "center", alignItems: "center", mb:-2}}>
