@@ -15,7 +15,7 @@ function ConfirmarModeDashboard ({ familyData, datos, willAssist, wontAssist, as
             <Typography variant='h6' gutterBottom>
                 {familyData.nombreFamilia}
             </Typography>
-            {datos.miembros.map((inv) => (
+            {datos?.miembros.map((inv) => (
                 <Box
                     key={inv.id}
                     sx={{

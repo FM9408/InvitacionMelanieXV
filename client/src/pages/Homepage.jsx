@@ -3,14 +3,16 @@ import Container from '@mui/material/Container'
 import { useNavigate } from 'react-router-dom'
 import React from 'react'
 import Fuse from 'fuse.js'
-import { setUser } from '../store/slices/authSlice'
+import { fetchInvitados } from '../store/slices/adminSlice'
+import { setFamilias } from '../store/slices/familiesSlice'
+import { setUser, } from '../store/slices/authSlice'
 import { setInvitationViewed } from '../hooks/database'
 import { setInvitado } from '../store/slices/invitationSlice'
 import FamilyModal from '../components/FamilyModal/FamilyModal'
 import { useSelector, useDispatch } from 'react-redux'
 
 export default function Homepage() {
-    const { invitados } = useSelector((state) => state.admin)
+    const { invitados, loadingDataAdmin} = useSelector((state) => state.admin)
     const [invitadosList, setInvitadosList] = React.useState([])
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -48,9 +50,6 @@ export default function Homepage() {
             const familiaEncontrada = results[0].item
             dispatch(setUser(familiaEncontrada))
             dispatch(setInvitado(familiaEncontrada))
-            globalThis.sessionStorage.clear()
-            globalThis.sessionStorage.setItem("visited", true);
-            globalThis.sessionStorage.setItem("user", JSON.stringify(familiaEncontrada));
             if (familiaEncontrada.hasViewed === false) {
                 setInvitationViewed(familiaEncontrada.id);
                  navigate(`/user/${familiaEncontrada.id}`);
@@ -85,9 +84,6 @@ export default function Homepage() {
         setInvitationViewed(e.id);
         dispatch(setInvitado(e));
         dispatch(setUser(e));
-        globalThis.sessionStorage.clear();
-       globalThis.sessionStorage.setItem("visited", true);
-        globalThis.sessionStorage.setItem("user", JSON.stringify(e));
         if (e.hasViewed === true) {
             
             navigate(`/user/${e.id}/dashboard`);
@@ -102,9 +98,13 @@ export default function Homepage() {
         });
     }
 
+   
     React.useEffect(() => {
+        if (loadingDataAdmin === true || invitados.length === 0) {
+            dispatch(fetchInvitados());
+        }
+        dispatch(setFamilias(invitados));
         setModalOpen(true)
-        
     }, [modalOpen])
     return (
         <Box

@@ -13,6 +13,7 @@ import {
     Menu,
     MenuItem,
     useMediaQuery,
+    alpha,
 } from '@mui/material';
 import {
     Restaurant,
@@ -34,6 +35,7 @@ import {
     setMensajes,
     setMessagesNotifications,
 } from '../store/slices/mensajesSlice';
+import { getNotifications, setNotifications } from '../store/slices/adminSlice';
 
 const buttonsArray = [
     {
@@ -60,9 +62,11 @@ const buttonsArray = [
                     auth.updateCurrentUser(null);
                 })
                 .finally(() => {
+                   
+                    socket.emit('adminLoggedOut', socket.id);
                     globalThis.location.href = '/';
                 })
-                .catch((error) => document.dispatchEvent("error", error)),
+                .catch((error) => document.dispatchEvent('error', error)),
         icon: <Logout sx={{ fontSize: '1.5rem', mr: -2 }} />,
     },
 ];
@@ -138,7 +142,7 @@ const AppBarButtons = () => {
     const navigate = useNavigate();
     const location = globalThis.location.pathname.toString().split('/')[2];
     const [isLocation, setIsLocation] = React.useState(false);
-    
+
     // Estado local para forzar la pantalla de carga síncronamente en el hilo principal
     const [loadingRoute, setLoadingRoute] = React.useState(false);
 
@@ -158,12 +162,12 @@ const AppBarButtons = () => {
             navigate(href);
             // Quitamos el loader local un momento después
             setLoadingRoute(false);
-        }, 50); 
+        }, 50);
     };
 
     // Si se activó la navegación, montamos el LoadingPage encima de todo de forma síncrona
     if (loadingRoute) {
-        return <LoadingPageFlower/>
+        return <LoadingPageFlower />;
         // NOTA: Si tienes el componente <LoadingPage /> exportado o accesible, impórtalo al inicio de Appbar.jsx y bájalo aquí:
         // return <LoadingPage />;
     }
@@ -172,13 +176,32 @@ const AppBarButtons = () => {
         <Grid container gap={1}>
             {buttonsArray.map((button) => {
                 return (
-                    <Grid item key={button.name} sx={{ display: 'flex', alignItems: 'center', flexDirection: 'row', gap: 1 }}>
-                        <Grid item sx={{ display: 'flex', alignItems: 'center', width: `${100 / buttonsArray.length}%` }}>
+                    <Grid
+                        item
+                        key={button.name}
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            flexDirection: 'row',
+                            gap: 1,
+                        }}
+                    >
+                        <Grid
+                            item
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                width: `${100 / buttonsArray.length}%`,
+                            }}
+                        >
                             {isLocation === button.name.toLocaleLowerCase() ?
                                 <ButtonAnimation>{button.icon}</ButtonAnimation>
                             :   button.icon}
                         </Grid>
-                        <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Grid
+                            item
+                            sx={{ display: 'flex', alignItems: 'center' }}
+                        >
                             <Button
                                 key={button.name}
                                 onClick={
@@ -201,8 +224,8 @@ const AppBarButtons = () => {
 
 export default function Appbar() {
     const theme = useTheme();
-     const [loadingRoute, setLoadingRoute] = React.useState(false);
-const [isLocation, setIsLocation] = React.useState(false);
+    const [loadingRoute, setLoadingRoute] = React.useState(false);
+    const [isLocation, setIsLocation] = React.useState(false);
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
     // --- NUEVO ESTADO PARA EL MENÚ MÓVIL ---
@@ -215,7 +238,7 @@ const [isLocation, setIsLocation] = React.useState(false);
     const handleCloseNavMenu = () => {
         setAnchorElNav(null);
     };
- const handleAdminNavigation = (href) => {
+    const handleAdminNavigation = (href) => {
         // 1. Si ya estamos en esa ruta, no hacemos nada
         if (globalThis.location.pathname === href) return;
 
@@ -227,23 +250,23 @@ const [isLocation, setIsLocation] = React.useState(false);
             navigate(href);
             // Quitamos el loader local un momento después
             setLoadingRoute(false);
-        }, 50); 
+        }, 50);
     };
     const navigate = useNavigate();
-    
-   React.useEffect(() => {
-       setIsLocation(location);
-       handleCloseNavMenu()
-   }, [isLocation, location, isMobile]);
-     // Si se activó la navegación, montamos el LoadingPage encima de todo de forma síncrona
+
+    React.useEffect(() => {
+        setIsLocation(location);
+        handleCloseNavMenu();
+    }, [isLocation, location, isMobile]);
+    // Si se activó la navegación, montamos el LoadingPage encima de todo de forma síncrona
     if (loadingRoute) {
-        return <LoadingPageFlower/>
+        return <LoadingPageFlower />;
         // NOTA: Si tienes el componente <LoadingPage /> exportado o accesible, impórtalo al inicio de Appbar.jsx y bájalo aquí:
         // return <LoadingPage />;
     }
 
     return (
-        <AppBar variant='admin' sx={{ width: '100%', zIndex:999999 }}>
+        <AppBar variant='admin' sx={{ width: '100%', zIndex: 999999 }}>
             <Toolbar sx={{ width: '100%' }}>
                 {isMobile ?
                     <Box
@@ -279,7 +302,7 @@ const [isLocation, setIsLocation] = React.useState(false);
                                 horizontal: 'left',
                             }}
                             open={Boolean(anchorElNav)}
-                            onClose={() =>handleCloseNavMenu()}
+                            onClose={() => handleCloseNavMenu()}
                             sx={{
                                 display: { xs: 'block', md: 'none' },
                             }}
@@ -290,13 +313,17 @@ const [isLocation, setIsLocation] = React.useState(false);
                                     onClick={
                                         button.onClick ?
                                             button.onClick
-                                            : () => {
-                                                handleCloseNavMenu()
-                                                handleAdminNavigation(button.href);
+                                        :   () => {
+                                                handleCloseNavMenu();
+                                                handleAdminNavigation(
+                                                    button.href
+                                                );
                                             }
                                     }
-                                >
-                                    <Box
+                                >{
+                                        globalThis.location.pathname.startsWith(`/admin/${button.name.toLowerCase()}`)? null : 
+                                            <Grid container direction={'row'} spacing={1} sx={{ width: '100%' , p:1, alignItems:"center", justifyContent:"space-around", gap:1}}>
+                                                <Grid item
                                         sx={{
                                             mr: 1,
                                             display: 'flex',
@@ -304,10 +331,14 @@ const [isLocation, setIsLocation] = React.useState(false);
                                         }}
                                     >
                                         {button.icon}
-                                    </Box>
-                                    <Typography textAlign='center'>
+                                    </Grid>
+                                                <Grid item>
+                                                    <Typography textAlign='center'>
                                         {button.name}
                                     </Typography>
+                                    </Grid>
+                                    </Grid>
+                                }
                                 </MenuItem>
                             ))}
                         </Menu>
@@ -328,17 +359,13 @@ const NotificationIcon = () => {
     const { familias } = useSelector((state) => state.familias);
     const [anchorEl, setAnchorEl] = React.useState(null);
     const notificationsRef = React.useRef(null);
-    const { confirmationNotifications } = useSelector(
-        (state) => state.invitado
-    );
-    const { notifications } = useSelector((state) => state.mensajes);
+   
+    const { notifications } = useSelector((state) => state.admin);
     const handlePopoverOpen = (event) => {
         setAnchorEl(event.currentTarget);
         setOnHover(true);
     };
-    const notificationsArray = React.useMemo(() => {
-        return notifications.concat(confirmationNotifications);
-    }, [notifications, confirmationNotifications]);
+    
 
     const handlePopoverClose = () => {
         setAnchorEl(null);
@@ -347,50 +374,21 @@ const NotificationIcon = () => {
     const theme = useTheme();
 
     React.useEffect(() => {
-        socket.on('newConfirmation', (invitado) => {
-            const familiaFind = familias.find(
-                (familia) => familia.id === invitado.familiaId
-            );
-            const familiasStored = familias.filter(
-                (familia) => familia.id !== invitado.familiaId
-            );
-            for (const miembro of familiaFind) {
-                if (miembro.id === invitado.id) {
-                    miembro.willAssist = invitado.willAssist;
-                    miembro.confirmationDate = invitado.confirmationDate;
-                }
-            }
-            familiasStored.push(familiaFind);
-            dispatch(setFamilias(familiasStored));
-            dispatch(
-                setConfirmationNotifications(
-                    `${invitado.nombreCompleto} ha confirmado su asistencia}`
-                )
-            );
+        socket.on("newNotification", (data) => {
+           setAnchorEl(notificationsRef.current);
+           setOnHover(true)
+            dispatch(setNotifications([...notifications, data]))
+            setTimeout(() => {
+                setAnchorEl(null);
+                setOnHover(false);
+            }, 5000);
         });
-        socket.on('newMensajeCreado', (data) => {
-            if (familias.length > 0) {
-                const familiaFind = familias.find(
-                    (familia) => familia.id === data.familia_Id
-                );
-
-                dispatch(
-                    setMensajes({
-                        ...data,
-                        apellido: familiaFind.apellido,
-                    })
-                );
-                dispatch(
-                    setMessagesNotifications(
-                        `¡La familia ${familiaFind.apellido} ha enviado un mensaje!`
-                    )
-                );
-            }
-            setOnHover(true);
-            handlePopoverOpen({ currentTarget: notificationsRef.current });
-            setTimeout(() => handlePopoverClose(), 3000);
-        });
-    }, [dispatch, familias]);
+        return () => {
+            socket.off("newNotification");
+        }
+        
+       
+    }, [dispatch, familias,notifications]);
     return (
         <Box
             sx={{
@@ -403,48 +401,70 @@ const NotificationIcon = () => {
             }}
         >
             <IconButton
-                aria-owns={onHover ? 'mouse-over-popup' : undefined}
-                size='large'
-                ref={notificationsRef}
                 onPointerOver={(e) => {
                     handlePopoverOpen(e);
                 }}
-                onPointerOut={() => {
-                    handlePopoverClose();
+                onClick={(e) => {
+                    handlePopoverOpen(e);
                 }}
+              
+             id='mouse-over-popover'
+                aria-label='notificaciones'
+                aria-haspopup={true}
+                size='large'
+                ref={notificationsRef}
+                
                 sx={{
                     color:
                         !onHover ?
                             theme.palette.primary.main
                         :   theme.palette.primary.dark,
-                    transition: 'color 1s ease-in-out',
+                    transition: 'color .1s linear',
                 }}
             >
                 <Notifications />
             </IconButton>
             <Popover
-                id='mouse-over-popover'
-                sx={{ pointerEvents: 'none' }}
+                disableScrollLock={true}
+                aria-describedby={'mouse-over-popover'}
+                aria-controls={'mouse-over-popover'}
+                aria-hidden={!onHover}
+                sx={{ }}
                 open={onHover}
                 anchorEl={anchorEl}
                 anchorOrigin={{
                     vertical: 'bottom',
                     horizontal: 'left',
                 }}
+                onClose={handlePopoverClose}
+                onMouseLeave={handlePopoverClose}
                 transformOrigin={{
                     vertical: 'top',
                     horizontal: 'left',
                 }}
-                onClose={handlePopoverClose}
-                disableRestoreFocus
+               
+               
             >
-                {notificationsArray.length > 0 ?
-                    <Grid container spacing={2} direction={'column'}>
+                <Box   onPointerLeave={handlePopoverClose}  sx={{p:2, maxHeight:"200px", maxWidth:"500px", overflowY:"auto", display:"flex", flexDirection:"column", gap:.25}}>
+                     {notifications.length > 0 ?
+                    <Grid container spacing={.1} direction={'column'}>
                         {notifications.map((notification, i) => {
                             return (
-                                <Grid item key={i}>
-                                    <Paper sx={{ p: 1, m: 1 }}>
-                                        <Typography>{notification}</Typography>
+                                <Grid item key={notification.id}>
+                                            <Paper sx={{ mt:1, m: .1, pt:.5, boxShadow:`2px 3px 5px ${theme.palette.secondary.main}`, border: `2px solid ${theme.palette.primary.dark}`, backgroundColor:`${alpha(theme.palette.primary.light, 0.05)}` }}>
+                                    <Grid container direction={'row'} spacing={2} >
+                                        <Grid item>
+                                                <Typography variant="body1" color={`${theme.palette.primary.main}`} sx={{WebkitTextStroke: `.2px ${theme.palette.primary.dark}`,textShadow: `-1px -1px 5px ${theme.palette.primary.light}`, mx: 2, my: .5, width: "100%", display: "flex", alignItems: "baseline", justifyContent: "flex-start"
+                                                }} >{notification.mensaje}</Typography>
+                                        </Grid>
+                                            <Grid item sx={{display:"flex", justifyContent:"flex-end", alignItems:"center", gap:1, width:"100%"}}>
+                                                <Typography variant="caption" sx={{mt:-2, px:1}}>
+                                                    {notification.creadaHace < 60 ?
+                        `Hace ${notification.creadaHace} min`
+                    :   `Hace ${Math.floor(notification.creadaHace / 60)} hrs`}
+                                                </Typography>
+                                        </Grid>
+                                    </Grid>
                                     </Paper>
                                 </Grid>
                             );
@@ -454,6 +474,7 @@ const NotificationIcon = () => {
                         <Typography>No hay notificaciones</Typography>
                     </Paper>
                 }
+               </Box>
             </Popover>
         </Box>
     );

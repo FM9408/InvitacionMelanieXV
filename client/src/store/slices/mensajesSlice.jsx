@@ -38,7 +38,10 @@ export const deleteMensajeofDB = createAsyncThunk(
 const initialState = {
     mensajes: [],
     loadingMensajes: true,
-    error: null,
+    error: {
+        hasError: false,
+        message: '',
+    },
     notifications: []
 };
 
@@ -47,9 +50,11 @@ const mensajesSlice = createSlice({
     initialState,
     reducers: {
         setMensajes: (state, action) => {
-            state.mensajes = state.mensajes.filter((mensaje) => mensaje.id !== action.payload.id);
-            state.mensajes.push(action.payload)
+            state.mensajes = action.payload
             
+        },
+        setError: (state, action) => {
+            state.error = action.payload;
         },
         setMessagesNotifications: (state, action) => {
 
@@ -100,6 +105,6 @@ const mensajesSlice = createSlice({
         });
     },
 });
-export const { setMensajes,deleteMensaje, setMessagesNotifications } = mensajesSlice.actions;
+export const { setMensajes,deleteMensaje, setMessagesNotifications, setError } = mensajesSlice.actions;
 
 export default mensajesSlice.reducer;

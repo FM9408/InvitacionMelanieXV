@@ -5,20 +5,20 @@ require('dotenv').config({
 require('./src/db.js');
 const { NODE_ENV, API_PORT } = process.env;
 const mock = require('./src/mock.js');
-const { server, io } = require('./src/config/websocketConfig');
+const { server, io } = require('./src/app.js');
 const connectionEmitter = require('./src/config/emmiter');
-const { conn } = require('./src/db.js');
+const { conn } = require('./src/db.js')
 
-// --- Configuración de Eventos de Socket.io ---
+//--- Configuración de Eventos de Socket.io ---
 const setupSocketEvents = () => {
+    
+  
+   
     const events = {
-        familyCreated: 'newFamilyCreated',
-        mensajeCreado: 'newMensajeCreado',
-        confirmationUpdated: 'newConfirmation',
-        mensajeEliminado: 'newMensajeEliminado',
-        mesaAsignada: 'newMesaAsignada',
-        invitationUpdated: 'newConfirmation',
-        familiaModificada: 'newFamilyModified',
+       
+       
+       
+        nuevaNotificacion: 'newNotification',
     };
 
     Object.entries(events).forEach(([emitterEvent, socketEvent]) => {
@@ -39,12 +39,12 @@ const startServer = async () => {
         // En producción (Cloud Run), esto debería ser false para evitar lentitud
         await conn.sync({
             force: isDev,
-            alter: false, // Cambiar a true solo cuando modifiques modelos
-            logging: false,
+            alter: true, // Cambiar a true solo cuando modifiques modelos
+            logging: false
         });
         console.log('✅ Base de datos sincronizada');
 
-        setupSocketEvents();
+         setupSocketEvents();
 
         // Seed de datos ANTES de levantar el listener para evitar estados inconsistentes
         if (isDev) {

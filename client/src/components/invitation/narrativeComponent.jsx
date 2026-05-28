@@ -2,13 +2,14 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Box, Typography, Container, Stack, Grid } from '@mui/material';
 import { useScroll, useTransform, motion } from 'framer-motion';
 import { Video } from '@videojs/react/video';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { BackgroundVideoSkin, BackgroundVideo } from '@videojs/react/background';
 import FamilyModal from '../FamilyModal/FamilyModal';
 import PropTypes from 'prop-types';
 import YardIcon from '@mui/icons-material/Yard';
 import { Player } from '../../main';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchInvitadoById } from '../../store/slices/invitationSlice';
 
 
 // Importa este icono o tu SVG de rosa
@@ -104,13 +105,13 @@ const MarcoDorado = ({ imagen }) => (
                     zIndex: 3,
                     ...pos,
                     borderColor:
-                        i < 2 ?
-                            '#F9F6EE transparent transparent #F9F6EE'
-                        :   '#F9F6EE', // Esto es simplificado
+                    i < 2 ?
+                    '#F9F6EE transparent transparent #F9F6EE'
+                    :   '#F9F6EE', // Esto es simplificado
                     // En un entorno real usarías un SVG de esquina barroca aquí
                 }}
-            />
-        ))}
+                />
+            ))}
     </Box>
 );
 
@@ -119,6 +120,10 @@ MarcoDorado.propTypes = {
 };
 
 export const InvitacionNarrativa = () => {
+    const { familyID } = useParams();
+    const id = familyID;
+    const dispatch = useDispatch()
+    const { datos } = useSelector(state=> state.invitado)
     const { images } = useSelector((state) => state.images);
     const mainAudio = useRef(
         new Audio(images.afterTheMascarade)
@@ -219,13 +224,16 @@ export const InvitacionNarrativa = () => {
 
             // FINAL DE LA ANIMACIÓN: Abrir modal forzosamente
             if (progress >= 1) {
-                const user = globalThis.sessionStorage.getItem('user');
-                const viewed = JSON.parse(user);
-               
+                if (!datos.hasViewed) {
+                    dispatch(fetchInvitadoById(id))
+
+                }
+                const viewed = datos.hasViewed;
                 
-                if (viewed.hasViewed === true) {
-                    navigate(`/user/${viewed.id}/dashboard`)
-                }else if (!hasOpened) {
+                if (viewed === true) {
+                    navigate(`/user/${datos.id}/dashboard`)
+                } else
+                   if (!hasOpened) {
                     setModalOpen(true);
                     setHasOpened(true);
                 }
@@ -253,7 +261,7 @@ export const InvitacionNarrativa = () => {
             globalThis.removeEventListener('click', startAudio);
             clearTimeout(timer);
         };
-    }, [modalOpen, hasOpened]);
+    }, [modalOpen, hasOpened, datos, navigate, id]);
 
     // --- RANGOS DE VISIBILIDAD (Sin solapamiento) ---
 

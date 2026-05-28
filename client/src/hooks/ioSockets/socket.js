@@ -10,7 +10,7 @@ export const socket = io(URL, {
      * que se ve en tus capturas de pantalla.
      */
 
-    transports: ['websocket', 'polling' ],
+    transports: ['websocket', 'polling'],
 
     // Evita que el socket intente conectarse automáticamente al importar el archivo
     // permitiendo que App.jsx controle el inicio de la conexión.
@@ -21,14 +21,12 @@ export const socket = io(URL, {
     reconnectionDelay: 5000,
 });
 
-
 /**
  * Agregamos listeners básicos de diagnóstico para ayudarte a debugear en consola
  * sin afectar el rendimiento de la UI.
  */
 socket.on('connect', () => {
-    socket.connect()
-   
+    socket.connect();
 });
 
 socket.on('connect_error', (error) => {
@@ -41,11 +39,11 @@ socket.on('connect_error', (error) => {
 });
 
 socket.on('disconnect', (reason) => {
-      socket.off('newMensaje')
-                socket.off('newMensajeEliminado')
-                socket.off('newFamilyCreated')
-    socket.off('newConfirmation')
-    socket.disconnect()
+    socket.off('newMensaje');
+    socket.off('newMensajeEliminado');
+    socket.off('newFamilyCreated');
+    socket.off('newConfirmation');
+    socket.disconnect();
     console.log(
         '%c Socket desconectado:',
         'color: #ff9800; font-weight: bold;',

@@ -63,8 +63,8 @@ const dispatch  = useDispatch();
     // Resetear o cargar datos al abrir
    useEffect(() => {
     //1. Redirección si no hay miembros en confirmación
-       if (mode === 'Confirmar' && datos.miembros.length === 0) {
-           setInvitado(JSON.parse(globalThis.sessionStorage.getItem('user')));
+       if (mode === 'Confirmar' && datos?.miembros.length === 0) {
+          
            
     }
     
@@ -139,7 +139,7 @@ const dontAssistHandler = (miembro) => {
         // ====================================================
         // ¡LA FUNCIÓN QUE BUSCABAS PARA EL sessionStorage!
         // ====================================================
-        globalThis.sessionStorage.setItem('user', JSON.stringify(usuarioActualizado));
+       
 
         // 5. Actualizamos Redux en memoria para que el Dashboard cambie al instante sin recargar
         dispatch(setUser(usuarioActualizado));
@@ -160,7 +160,7 @@ const dontAssistHandler = (miembro) => {
 
     const updateMember = ({ index, value }) => {
         
-    if(value === "") return;
+    // if(value === "") return;
     
     // Mapeamos el array y creamos un objeto totalmente nuevo para el índice modificado
     const newMembers = familyData.invitados.map((item, i) => {

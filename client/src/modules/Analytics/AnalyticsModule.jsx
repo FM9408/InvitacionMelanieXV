@@ -8,7 +8,6 @@ import {
     Tooltip,
 } from 'recharts';
 import { Box, useTheme } from '@mui/material';
-import { useSelector } from 'react-redux';
 import React from 'react';
 
 // Datos de ejemplo: Confirmaciones por día
@@ -66,8 +65,8 @@ const buildConfirmedData = (familias) => {
     }));
 };
 
-const AnalyticsModule = () => {
-    const { invitados } = useSelector((state) => state.admin);
+const AnalyticsModule = ({invitados}) => {
+    
     const data = React.useMemo(() => buildConfirmedData(invitados), [invitados]);
     const theme = useTheme();
 
