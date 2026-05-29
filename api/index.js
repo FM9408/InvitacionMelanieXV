@@ -34,7 +34,7 @@ const startServer = async () => {
         await conn.authenticate();
 
         const isDev = NODE_ENV === 'development';
-
+        console.log(isDev)
         // OPTIMIZACIÓN: Solo sincronizar si es estrictamente necesario
         // En producción (Cloud Run), esto debería ser false para evitar lentitud
         await conn.sync({

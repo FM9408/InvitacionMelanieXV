@@ -36,6 +36,7 @@ import {
     setMessagesNotifications,
 } from '../store/slices/mensajesSlice';
 import { getNotifications, setNotifications } from '../store/slices/adminSlice';
+import TiempoTranscurrido from './tiempo transcurrido';
 
 const buttonsArray = [
     {
@@ -458,11 +459,7 @@ const NotificationIcon = () => {
                                                 }} >{notification.mensaje}</Typography>
                                         </Grid>
                                             <Grid item sx={{display:"flex", justifyContent:"flex-end", alignItems:"center", gap:1, width:"100%"}}>
-                                                <Typography variant="caption" sx={{mt:-2, px:1}}>
-                                                    {notification.creadaHace < 60 ?
-                        `Hace ${notification.creadaHace} min`
-                    :   `Hace ${Math.floor(notification.creadaHace / 60)} hrs`}
-                                                </Typography>
+                                                <TiempoTranscurrido fechaIso={notification.fecha} kind={"notification"} />
                                         </Grid>
                                     </Grid>
                                     </Paper>

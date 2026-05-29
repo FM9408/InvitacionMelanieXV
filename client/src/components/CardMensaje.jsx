@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Typography, IconButton, useTheme } from '@mui/material';
+import TiempoTranscurrido from './tiempo transcurrido';
 import { useDispatch, useSelector } from 'react-redux';
 import {
    
@@ -94,19 +95,7 @@ export function CardMensaje ({ m }) {
                     "{m.mensaje}"
                 </Typography>
 
-                <Typography
-                    variant='adminCaption'
-                    sx={{
-                        mt: 2,
-                        color: theme.palette.text.secondary,
-                        textAlign: 'right',
-                        fontWeight: 'bold',
-                    }}
-                >
-                    {m.enviadoHace < 60 ?
-                        `Hace ${m.enviadoHace} min`
-                    :   `Hace ${Math.floor(m.enviadoHace / 60)} hrs`}
-                </Typography>
+               <TiempoTranscurrido fechaIso={m.enviado} kind={"mensaje"} />
             </Box>
         </Box>
     );
