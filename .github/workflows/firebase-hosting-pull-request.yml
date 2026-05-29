@@ -1,0 +1,94 @@
+name: Despliegue de PR (Client a Firebase & API a Cloud Run)
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # ==========================================
+  # JOB 1: COMPILAR Y DESPLEGAR EL CLIENTE A FIREBASE
+  # ==========================================
+  deploy-client:
+    name: Desplegar Cliente a Firebase
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: './client/package.json'
+
+      - name: Instalar dependencias y compilar Cliente con Secretos
+        env:
+          VITE_API_PORT: ${{ secrets.VITE_API_PORT }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_FIREBASE_APIKEY: ${{ secrets.VITE_FIREBASE_APIKEY }}
+          VITE_FIREBASE_AUTHDOMAIN: ${{ secrets.VITE_FIREBASE_AUTHDOMAIN }}
+          VITE_FIREBASE_PROJECTID: ${{ secrets.VITE_FIREBASE_PROJECTID }}
+          VITE_FIREBASE_STORAGEBUCKET: ${{ secrets.VITE_FIREBASE_STORAGEBUCKET }}
+          VITE_FIREBASE_MESSAGINSENDERID: ${{ secrets.VITE_FIREBASE_MESSAGINSENDERID }}
+          VITE_FIREBASE_APPID: ${{ secrets.VITE_FIREBASE_APPID }}
+        run: |
+          cd client
+          npm install
+          npm run build
+
+      - name: Desplegar a Firebase Hosting (Preview Canal para PR)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_XVDEMELANIE_5BB91 }}'
+          projectId: 'xvdemelanie-5bb91'
+          expires: 7d
+
+  # ==========================================
+  # JOB 2: CONSTRUIR DOCKER Y DESPLEGAR API A CLOUD RUN
+  # ==========================================
+  deploy-api:
+    name: Construir Docker y Desplegar API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Autenticarse en Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Configurar Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: 'xvdemelanie-5bb91'
+
+      - name: Autenticar Docker con Google Container Registry (GCR)
+        run: |
+          gcloud auth configure-docker gcr.io --quiet
+
+      - name: Construir y Subir Imagen Docker de la API
+        run: |
+          docker build -t gcr.io/xvdemelanie-5bb91/invitacion-app:pr-${{ github.event.number }} -f api/Dockerfile api/
+          docker push gcr.io/xvdemelanie-5bb91/invitacion-app:pr-${{ github.event.number }}
+
+      - name: Desplegar a Cloud Run ocultando Variables Sensibles
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: 'invitacion-service-pr'
+          image: 'gcr.io/xvdemelanie-5bb91/invitacion-app:pr-${{ github.event.number }}'
+          region: 'us-central1'
+          flags: '--allow-unauthenticated --session-affinity --timeout=600'
+          env_vars: |
+            NODE_ENV=production
+            API_PORT=8080
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_HOST=${{ secrets.DB_HOST }}
+            INSTANCE_CONNECTION_NAME=${{ secrets.INSTANCE_CONNECTION_NAME }}
+            CLIENT_URL=${{ secrets.CLIENT_URL }}
+            CLIENT_PORT=5173
