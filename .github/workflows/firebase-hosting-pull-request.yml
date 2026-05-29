@@ -36,7 +36,7 @@ jobs:
         run: |
           cd client
           npm install
-          npm run build
+          vite build
 
       - name: Desplegar a Firebase Hosting (Preview Canal para PR)
         uses: FirebaseExtended/action-hosting-deploy@v0
