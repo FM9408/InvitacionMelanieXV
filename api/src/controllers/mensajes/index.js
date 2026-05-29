@@ -3,7 +3,7 @@ const connectionEmitter = require('../../config/emmiter.js')
 
 
 
-async function createNewMensaje(req, res) {
+async function createNewMensaje(req, res) { 
     const { mensaje } = req.body
     const { familiaID } = req.params
     const t = await conn.transaction()
