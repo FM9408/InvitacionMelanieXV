@@ -35,8 +35,8 @@ jobs:
           VITE_FIREBASE_APPID: ${{ secrets.VITE_FIREBASE_APPID }}
         run: |
           cd client
-          npm install
-          vite build
+          npm install --legacy-peer-deps
+          npm run build
 
       - name: Desplegar a Firebase Hosting (Preview Canal para PR)
         uses: FirebaseExtended/action-hosting-deploy@v0
