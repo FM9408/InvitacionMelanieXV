@@ -4,7 +4,7 @@
 ![Google Cloud Run](https://img.shields.io/badge/Backend-Cloud%20Run-blue?logo=googlecloud&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Database-Supabase%20%26%20PostgreSQL-green?logo=supabase&logoColor=white)
 
-Estructura de arquitectura robusta basada en un enfoque de **Monorepo** para la gestión y ejecución de la aplicación de invitaciones digitales de los XV Años de Melanie. La plataforma integra un cliente interactivo moderno (Single Page Application), una API REST escalable con persistencia de datos en la nube y un módulo conmemorativo dedicado (*In Memoriam*).
+Estructura de arquitectura robusta basada en un enfoque de **Monorepo** para la gestión y ejecución de la aplicación de invitaciones digitales para los ***XV Años de Melany***. La plataforma integra un cliente interactivo moderno (Single Page Application), una API REST escalable con persistencia de datos en la nube y un módulo conmemorativo dedicado (*In Memoriam*).
 
 ---
 
