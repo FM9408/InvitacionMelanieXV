@@ -3,7 +3,7 @@ const connectionEmitter = require('../../config/emmiter.js')
 
 
 
-async function createNewMensaje(req, res) {
+async function createNewMensaje(req, res) { 
     const { mensaje } = req.body
     const { familiaID } = req.params
     const t = await conn.transaction()
@@ -45,7 +45,7 @@ async function createNewMensaje(req, res) {
         
         req.io.to('/Admins').emit('newMensajeCreado', newMessage);
         connectionEmitter.emit('crearNotificacion', {
-            mensaje: `La familia ${getFamily.apellido} ha enviao un mensaje`,
+            mensaje: `La familia ${getFamily.apellido} ha enviado un mensaje`,
         });
   
         res.status(201).json({
